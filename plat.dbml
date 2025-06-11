@@ -1,19 +1,62 @@
-
 Project platDB {
-  database_type = "MySQL"
+  database_type : "MySQL"
 }
 
-Table branches {
-  branch_id       int         [pk, increment]
-  branch_code     varchar(10)
-  branch_name     varchar(100) [not null]
+Table locations {
+  location_id     int         [pk, increment]
+  location_name   varchar(100) [not null]
   address         varchar(255)
   city            varchar(50)
   region          varchar(50)
-  phone_number    varchar(20)
-  email           varchar(100)
-  manager_name    varchar(100)
-  status          enum('نشط', 'متوقف') [default: 'نشط']
-  created_at      datetime     [default: `CURRENT_TIMESTAMP`]
-  updated_at      datetime     [default: `CURRENT_TIMESTAMP`, on update: `CURRENT_TIMESTAMP`]
+  latitude        decimal(10,8)
+  longitude       decimal(11,8)
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table services {
+  service_id      int         [pk, increment]
+  service_name_ar varchar(100) [not null] // اسم الخدمة بالعربية
+  service_name_en varchar(100) // اسم الخدمة بالإنجليزية
+  description     text        // وصف الخدمة
+  is_active       boolean     [default: true] // فعال/غير فعال
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table branch_services {
+  branch_service_id int [pk, increment]
+  branch_id         int [ref: > branches.branch_id] // الفرع
+  service_id        int [ref: > services.service_id] // الخدمة
+  is_active         boolean [default: true] // الخدمة فعالة في هذا الفرع
+  start_date        date // تاريخ بداية الخدمة
+  end_date          date // تاريخ انتهاء الخدمة (اختياري)
+  notes             text // ملاحظات خاصة بالخدمة في هذا الفرع
+  created_at        datetime [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (branch_id, service_id) [unique] // منع تكرار نفس الخدمة لنفس الفرع
+  }
+}
+
+
+
+Table branches {
+  branch_id                         int         [pk, increment]
+  branch_code                       varchar(10) [unique, not null] // كود الفرع
+  branch_name_ar                    varchar(100) [not null] // الاسم العربي
+  branch_name_en                    varchar(100) // الاسم الإنجليزي
+  location_id                       int         [ref: > locations.location_id] // الموقع من جدول منفصل
+                  
+  // Contact Information
+  phone_number                      varchar(20) // هاتف الفرع
+  license_number                    varchar(50) // رقم ترخيص الفرع
+  branch_license_number             varchar(50) // رقم ترخيص الفرع
+ 
+ //responsible manager information
+  responsible_manager_name          varchar(100) // المدير المسؤول
+  responsible_manager_mobile        varchar(20) // جوال المدير المسؤول
+  //branch information
+  branch_email                      varchar(100) // البريد الإلكتروني (تبع الفرع)
+  branch_address                      varchar(100)
+  created_at                        datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at                        datetime [default: `CURRENT_TIMESTAMP`]
 }
