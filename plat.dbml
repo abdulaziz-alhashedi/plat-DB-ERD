@@ -56,7 +56,32 @@ Table branches {
   responsible_manager_mobile        varchar(20) // جوال المدير المسؤول
   //branch information
   branch_email                      varchar(100) // البريد الإلكتروني (تبع الفرع)
-  branch_address                      varchar(100)
+  branch_address                    varchar(100)
+  
+
+  // Additional branch settings from new image
+  max_count                         int         [default: 1000] // العدد الأقصى (1000 في الصورة)
+  security_camera_link              varchar(255) // رابط كاميرا المراقبة
+  fingerprint_system_link           varchar(255) // رابط نظام البصمة
+  rental_sequence_start             int         [default: 1] // بداية تسلسل المؤجر
+  documents_sequence_start          int         [default: 1] // بداية تسلسل السندات
+  
+  // Branch limitations and features
+  no_document_updates               boolean     [default: false] // لا يوجد طقورات للسندات لعدم امكانية المقر بتحديث الاسعار
+  no_check_visa_payment             boolean     [default: false] // هذا الفرع لا يدعم القبض بالشيكة او فيزا
+  
+  // Operating hours
+  opening_time                      time        // بداية عمل البرنامج يوميا عند الساعة
+  closing_time                      time        // إغلاق البرنامج يوميا عند الساعة
+  
+
+
+
+
+
+
+
+  
   created_at                        datetime [default: `CURRENT_TIMESTAMP`]
   updated_at                        datetime [default: `CURRENT_TIMESTAMP`]
 }
