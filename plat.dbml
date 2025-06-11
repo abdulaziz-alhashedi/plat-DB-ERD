@@ -99,6 +99,49 @@ Table branches {
   updated_at                        datetime [default: `CURRENT_TIMESTAMP`]
 }
 
+// جداول إدارة المستخدمين والصلاحيات
+
+Table permission_groups {
+  group_id        int         [pk, increment]
+  group_name      varchar(100) [not null] // اسم مجموعة الصلاحيات
+  description     text        // وصف المجموعة
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table permissions {
+  permission_id   int         [pk, increment]
+  permission_key  varchar(50) [unique, not null] // مفتاح الصلاحية
+  description     varchar(255) [not null] // وصف الصلاحية
+  category        varchar(50) // تصنيف الصلاحية
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table permission_group_permissions {
+  id              int         [pk, increment]
+  group_id        int         [ref: > permission_groups.group_id]
+  permission_id   int         [ref: > permissions.permission_id]
+  
+  indexes {
+    (group_id, permission_id) [unique] // لمنع تكرار الصلاحية في نفس المجموعة
+  }
+}
+
+Table users {
+  user_id         int         [pk, increment]
+  job_number      varchar(20) // الرقم الوظيفي
+  name_ar         varchar(100) [not null] // الاسم العربي
+  name_en         varchar(100) // الاسم الإنجليزي
+  password        varchar(255) [not null] // كلمة المرور (مشفرة)
+  branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
+  permission_group_id int     [ref: > permission_groups.group_id] // مجموعة الصلاحيات
+  is_active       boolean     [default: true] // تفعيل دخول المستخدم
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  last_login      datetime    // آخر تسجيل دخول
+}
+
+
 
 
 
