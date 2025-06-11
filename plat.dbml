@@ -70,13 +70,11 @@ Table branches {
   branch_code                       varchar(10) [unique, not null] // كود الفرع
   branch_name_ar                    varchar(100) [not null] // الاسم العربي
   branch_name_en                    varchar(100) // الاسم الإنجليزي
-  location_id                       int         [ref: > locations.location_id] // الموقع من جدول منفصل
-                  
+  location_id                       int         [ref: > locations.location_id] // الموقع من جدول منفصل    
   // Contact Information
   phone_number                      varchar(20) // هاتف الفرع
   license_number                    varchar(50) // رقم ترخيص الفرع
   branch_license_number             varchar(50) // رقم ترخيص الفرع
- 
  //responsible manager information
   responsible_manager_name          varchar(100) // المدير المسؤول
   responsible_manager_mobile        varchar(20) // جوال المدير المسؤول
