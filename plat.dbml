@@ -25,14 +25,12 @@ Table branch_targets {
   branch_id                         int         [ref: > branches.branch_id] // الفرع
   month_id                          int         [ref: > months.month_id] // الشهر
   target_amount                     decimal(10,2) [default: 0.00] // مبلغ التارجت
-  
   // Target settings (إعدادات التارجت)
   commission_calculation_percentage  int         [default: 100] // حتى يتم احتساب عمولة الموظف يجب أكمال التارجت المطلوب بنسبة %
   target_achievement_percentage      decimal(5,2) [default: 1.0] // من تم تحقيق التارجت المطلوب %
   calculate_commission_full_amount   boolean     [default: false] // احتساب العمولة على كامل المبلغ
   minimum_rent_additional            int         [default: 85] // سعر الإيجار الأدنى + X ويجب بحسب بنع %
   minimum_rent_base                  int         [default: 30] // القيمة الأساسية للإيجار الأدنى
-  
   created_at                        datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at                        datetime    [default: `CURRENT_TIMESTAMP`]
   
