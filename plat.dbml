@@ -3,7 +3,7 @@ Project platDB {
 }
 
 Table locations {
-  location_id     int         [pk, increment]
+  location_id     int  [pk, increment]
   location_name   varchar(100) [not null]
   address         varchar(255)
   city            varchar(50)
