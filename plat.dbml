@@ -181,9 +181,9 @@ Table contracts {
   contract_id             int         [pk, increment]
   contract_number         varchar(50) [unique, not null]
 
-  client_id               int         [ref: > clients.client_id]
-  vehicle_id              int         [ref: > vehicles.vehicle_id]
-  branch_id               int         [ref: > branches.branch_id]
+  client_id               int         [ref: > clients.client_id, not null]
+  vehicle_id              int         [ref: > vehicles.vehicle_id, not null]
+  branch_id               int         [ref: > branches.branch_id, not null]
 
   contract_type           varchar(20)
   rental_type             varchar(20)
@@ -192,31 +192,32 @@ Table contracts {
   daily_km_limit          int
   extra_km_price          decimal(10,2)
 
-  start_datetime          datetime
-  end_datetime            datetime
+  start_datetime          datetime [not null]
+  end_datetime            datetime [not null]
   start_datetime_hijri    varchar(20)
   end_datetime_hijri      varchar(20)
 
   insurance_type          varchar(20)
   daily_rate              decimal(10,2)
   discount                decimal(10,2)
-  amount_due              decimal(10,2)
-  amount_paid             decimal(10,2)
-  payment_method_id int [ref: > payment_methods.method_id]
+  amount_due              decimal(10,2) [not null]
+  amount_paid             decimal(10,2) [not null]
+  payment_method_id       int [ref: > payment_methods.method_id]
 
-  is_booking              boolean     [default: false]
+  is_booking              boolean [default: false]
+  notes                   text
+  created_by              int [ref: > users.user_id]
+  created_at              datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at              datetime [default: `CURRENT_TIMESTAMP`]
 
-   notes                   text
-  created_by              int           [ref: > users.user_id] // Now references users
-  created_at              datetime      [default: `CURRENT_TIMESTAMP`]
-  updated_at              datetime      [default: `CURRENT_TIMESTAMP`]
- 
-
-
-   indexes {
-    (client_id, branch_id) // Added for performance
+  indexes {
+    (client_id, branch_id)
+    (vehicle_id)
+    (start_datetime)
+    (end_datetime)
   }
-  
+
+  Note: 'CHECK (start_datetime < end_datetime)' -- to be enforced manually in DB or app
 }
 
 Table contract_vehicle_authorizations {
