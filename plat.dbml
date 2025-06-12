@@ -150,7 +150,7 @@ Table clients {
   full_name               varchar(100) [not null]
   id_number               varchar(20)  [not null, unique]
   phone_number            varchar(20)  [not null]
-  registration_branch_id  int         [ref: > branches.branch_id]
+  registration_branch_id  int         [ref: > branches.branch_id, not null]
   created_at              datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -217,7 +217,7 @@ Table contracts {
     (end_datetime)
   }
 
-  Note: 'CHECK (start_datetime < end_datetime)' -- to be enforced manually in DB or app
+  // Note: 'CHECK (start_datetime < end_datetime)' -- to be enforced manually in DB or app
 }
 
 Table contract_vehicle_authorizations {
@@ -233,6 +233,14 @@ Table contract_vehicle_authorizations {
   }
 }
 
+Table contract_renewals {
+  renewal_id       int [pk, increment]
+  contract_id      int [ref: > contracts.contract_id, not null]
+  renewed_at       datetime [default: `CURRENT_TIMESTAMP`]
+  new_contract_id  int [ref: > contracts.contract_id] // العقد المجدد
+  renewed_by       int [ref: > users.user_id]
+  notes            text
+}
 
 
 
