@@ -998,6 +998,15 @@ Table users {
 
 
 
+Table clients {
+  client_id               int         [pk, increment]
+  full_name               varchar(100) [not null]
+  id_number               varchar(20)  [not null, unique]
+  phone_number            varchar(20)  [not null]
+  registration_branch_id  int         [ref: > branches.branch_id, not null]
+  created_at              datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
 Table vehicles {
   vehicle_id        int         [pk, increment]
   plate_number      varchar(20) [unique, not null]
