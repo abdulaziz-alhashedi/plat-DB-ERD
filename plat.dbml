@@ -133,134 +133,16 @@ Table users {
   name_ar         varchar(100) [not null] // الاسم العربي
   name_en         varchar(100) // الاسم الإنجليزي
   password        varchar(255) [not null] // كلمة المرور (مشفرة)
-  branch_id       int         [ref: > branches.branch_id, not null] // الفرع التابع له
+  branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
   permission_group_id int     [ref: > permission_groups.group_id] // مجموعة الصلاحيات
   is_active       boolean     [default: true] // تفعيل دخول المستخدم
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   last_login      datetime    // آخر تسجيل دخول
-  role             enum('manager', 'agent', 'admin') [not null]
-  phone            varchar(20)
-
-}
-
-
-Table clients {
-  client_id               int         [pk, increment]
-  full_name               varchar(100) [not null]
-  id_number               varchar(20)  [not null, unique]
-  phone_number            varchar(20)  [not null]
-  registration_branch_id  int         [ref: > branches.branch_id, not null]
-  created_at              datetime    [default: `CURRENT_TIMESTAMP`]
-}
-
-Table vehicles {
-  vehicle_id        int         [pk, increment]
-  plate_number      varchar(20) [unique, not null]
-  brand             varchar(50) [not null]
-  model             varchar(50) [not null]
-  year              int         [not null]
-  status            enum('available', 'rented', 'under_maintenance', 'inactive') [default: 'available']
-  current_branch_id int [ref: > branches.branch_id, not null]
-  created_at        datetime    [default: `CURRENT_TIMESTAMP`]
-}
-
-Table vehicle_movements {
-  movement_id     int       [pk, increment]
-  vehicle_id      int       [ref: > vehicles.vehicle_id, not null]
-  from_branch_id  int       [ref: > branches.branch_id]
-  to_branch_id    int       [ref: > branches.branch_id]
-  moved_by        int       [ref: > users.user_id]
-  moved_at        datetime  [default: `CURRENT_TIMESTAMP`]
-  status          enum('pending', 'approved', 'rejected') [default: 'pending', not null]
-  notes           text
-}
-
-
-Table contracts {
-  contract_id             int         [pk, increment]
-  contract_number         varchar(50) [unique, not null]
-
-  client_id               int         [ref: > clients.client_id, not null]
-  vehicle_id              int         [ref: > vehicles.vehicle_id, not null]
-  branch_id               int         [ref: > branches.branch_id, not null]
-
-  contract_type           varchar(20)
-  rental_type             varchar(20)
-  rental_days             int
-  kilometers_allowed      int
-  daily_km_limit          int
-  extra_km_price          decimal(10,2)
-
-  start_datetime          datetime [not null]
-  end_datetime            datetime [not null]
-  start_datetime_hijri    varchar(20)
-  end_datetime_hijri      varchar(20)
-
-  insurance_type          varchar(20)
-  daily_rate              decimal(10,2)
-  discount                decimal(10,2)
-  amount_due              decimal(10,2) [not null]
-  amount_paid             decimal(10,2) [not null]
-  payment_method_id       int [ref: > payment_methods.method_id]
-
-  is_booking              boolean [default: false]
-  notes                   text
-  created_by              int [ref: > users.user_id]
-  created_at              datetime [default: `CURRENT_TIMESTAMP`]
-  updated_at              datetime [default: `CURRENT_TIMESTAMP`]
-
-  indexes {
-    (client_id, branch_id)
-    (vehicle_id)
-    (start_datetime)
-    (end_datetime)
-  }
-
-  // Note: 'CHECK (start_datetime < end_datetime)' -- to be enforced manually in DB or app
-}
-
-Table contract_vehicle_authorizations {
-  authorization_id     int       [pk, increment]
-  contract_id          int       [ref: > contracts.contract_id, not null]
-  vehicle_id           int       [ref: > vehicles.vehicle_id, not null]
-  authorization_start_at datetime [default: `CURRENT_TIMESTAMP`, not null] // Added
-  authorization_end_at datetime [not null]
-  created_at           datetime [default: `CURRENT_TIMESTAMP`]
-
-  indexes {
-    (vehicle_id, authorization_end_at) // For active auth queries
-  }
-}
-
-Table contract_renewals {
-  renewal_id       int [pk, increment]
-  contract_id      int [ref: > contracts.contract_id, not null]
-  renewed_at       datetime [default: `CURRENT_TIMESTAMP`]
-  new_contract_id  int [ref: > contracts.contract_id] // العقد المجدد
-  renewed_by       int [ref: > users.user_id]
-  notes            text
 }
 
 
 
-Table payment_methods {
-  method_id        int           [pk, increment]
-  name_ar          varchar(50)   [not null]
-  name_en          varchar(50)
-  is_active        boolean       [default: true]
-}
 
-
- 
-Table audit_logs {
-  log_id          int          [pk, increment]
-  user_id         int          [ref: > users.user_id] // من قام بالتعديل
-  table_name      varchar(100) [not null]
-  record_id       int          [not null] // المعرف المرتبط بالسجل المعدل
-  action_type     enum('insert', 'update', 'delete') [not null]
-  changes         text         // JSON لتفاصيل التغييرات أو النص الكامل
-  created_at      datetime     [default: `CURRENT_TIMESTAMP`]
-}
 
 
