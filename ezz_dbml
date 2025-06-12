@@ -1,0 +1,266 @@
+Project platDB {
+  database_type : "MySQL"
+}
+
+Table locations {
+  location_id     int  [pk, increment]
+  location_name   varchar(100) [not null]
+  address         varchar(255)
+  city            varchar(50)
+  region          varchar(50)
+  latitude        decimal(10,8)
+  longitude       decimal(11,8)
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table months {
+  month_id        int         [pk, increment]
+  month_number    int         [unique, not null] // رقم الشهر (1-12)
+  month_name_ar   varchar(20) [not null] // اسم الشهر بالعربية
+  month_name_en   varchar(20) [not null] // اسم الشهر بالإنجليزية
+}
+
+Table branch_targets {
+  target_id                         int         [pk, increment]
+  branch_id                         int         [ref: > branches.branch_id] // الفرع
+  month_id                          int         [ref: > months.month_id] // الشهر
+  target_amount                     decimal(10,2) [default: 0.00] // مبلغ التارجت
+  // Target settings (إعدادات التارجت)
+  commission_calculation_percentage  int         [default: 100] // حتى يتم احتساب عمولة الموظف يجب أكمال التارجت المطلوب بنسبة %
+  target_achievement_percentage      decimal(5,2) [default: 1.0] // من تم تحقيق التارجت المطلوب %
+  calculate_commission_full_amount   boolean     [default: false] // احتساب العمولة على كامل المبلغ
+  minimum_rent_additional            int         [default: 85] // سعر الإيجار الأدنى + X ويجب بحسب بنع %
+  minimum_rent_base                  int         [default: 30] // القيمة الأساسية للإيجار الأدنى
+  created_at                        datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at                        datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (branch_id, month_id) [unique] // منع تكرار نفس الشهر لنفس الفرع
+  }
+}
+
+Table services {
+  service_id      int         [pk, increment]
+  service_name_ar varchar(100) [not null] // اسم الخدمة بالعربية
+  service_name_en varchar(100) // اسم الخدمة بالإنجليزية
+  description     text        // وصف الخدمة
+  is_active       boolean     [default: true] // فعال/غير فعال
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table branch_services {
+  branch_service_id int [pk, increment]
+  branch_id         int [ref: > branches.branch_id] // الفرع
+  service_id        int [ref: > services.service_id] // الخدمة
+  is_active         boolean [default: true] // الخدمة فعالة في هذا الفرع
+  start_date        date // تاريخ بداية الخدمة
+  end_date          date // تاريخ انتهاء الخدمة (اختياري)
+  notes             text // ملاحظات خاصة بالخدمة في هذا الفرع
+  created_at        datetime [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (branch_id, service_id) [unique] // منع تكرار نفس الخدمة لنفس الفرع
+  }
+}
+
+
+
+Table branches {
+  branch_id                         int         [pk, increment]
+  branch_code                       varchar(10) [unique, not null] // كود الفرع
+  branch_name_ar                    varchar(100) [not null] // الاسم العربي
+  branch_name_en                    varchar(100) // الاسم الإنجليزي
+  location_id                       int         [ref: > locations.location_id] // الموقع من جدول منفصل    
+  // Contact Information
+  phone_number                      varchar(20) // هاتف الفرع
+  license_number                    varchar(50) // رقم ترخيص الفرع
+  branch_license_number             varchar(50) // رقم ترخيص الفرع
+ //responsible manager information
+  responsible_manager_name          varchar(100) // المدير المسؤول
+  responsible_manager_mobile        varchar(20) // جوال المدير المسؤول
+  //branch information
+  branch_email                      varchar(100) // البريد الإلكتروني (تبع الفرع)
+  branch_address                    varchar(100)
+  
+
+  // Additional branch settings from new image
+  max_count                         int         [default: 1000] // العدد الأقصى (1000 في الصورة)
+  security_camera_link              varchar(255) // رابط كاميرا المراقبة
+  fingerprint_system_link           varchar(255) // رابط نظام البصمة
+  rental_sequence_start             int         [default: 1] // بداية تسلسل المؤجر
+  documents_sequence_start          int         [default: 1] // بداية تسلسل السندات
+  // Branch limitations and features
+  no_document_updates               boolean     [default: false] // لا يوجد طقورات للسندات لعدم امكانية المقر بتحديث الاسعار
+  no_check_visa_payment             boolean     [default: false] // هذا الفرع لا يدعم القبض بالشيكة او فيزا
+  // Operating hours
+  opening_time                      time        // بداية عمل البرنامج يوميا عند الساعة
+  closing_time                      time        // إغلاق البرنامج يوميا عند الساعة
+  created_at                        datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at                        datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// جداول إدارة المستخدمين والصلاحيات
+
+Table permission_groups {
+  group_id        int         [pk, increment]
+  group_name      varchar(100) [not null] // اسم مجموعة الصلاحيات
+  description     text        // وصف المجموعة
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table permissions {
+  permission_id   int         [pk, increment]
+  permission_key  varchar(50) [unique, not null] // مفتاح الصلاحية
+  description     varchar(255) [not null] // وصف الصلاحية
+  category        varchar(50) // تصنيف الصلاحية
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table permission_group_permissions {
+  id              int         [pk, increment]
+  group_id        int         [ref: > permission_groups.group_id]
+  permission_id   int         [ref: > permissions.permission_id]
+  
+  indexes {
+    (group_id, permission_id) [unique] // لمنع تكرار الصلاحية في نفس المجموعة
+  }
+}
+
+Table users {
+  user_id         int         [pk, increment]
+  job_number      varchar(20) // الرقم الوظيفي
+  name_ar         varchar(100) [not null] // الاسم العربي
+  name_en         varchar(100) // الاسم الإنجليزي
+  password        varchar(255) [not null] // كلمة المرور (مشفرة)
+  branch_id       int         [ref: > branches.branch_id, not null] // الفرع التابع له
+  permission_group_id int     [ref: > permission_groups.group_id] // مجموعة الصلاحيات
+  is_active       boolean     [default: true] // تفعيل دخول المستخدم
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  last_login      datetime    // آخر تسجيل دخول
+  role             enum('manager', 'agent', 'admin') [not null]
+  phone            varchar(20)
+
+}
+
+
+Table clients {
+  client_id               int         [pk, increment]
+  full_name               varchar(100) [not null]
+  id_number               varchar(20)  [not null, unique]
+  phone_number            varchar(20)  [not null]
+  registration_branch_id  int         [ref: > branches.branch_id, not null]
+  created_at              datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table vehicles {
+  vehicle_id        int         [pk, increment]
+  plate_number      varchar(20) [unique, not null]
+  brand             varchar(50) [not null]
+  model             varchar(50) [not null]
+  year              int         [not null]
+  status            enum('available', 'rented', 'under_maintenance', 'inactive') [default: 'available']
+  current_branch_id int [ref: > branches.branch_id, not null]
+  created_at        datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table vehicle_movements {
+  movement_id     int       [pk, increment]
+  vehicle_id      int       [ref: > vehicles.vehicle_id, not null]
+  from_branch_id  int       [ref: > branches.branch_id]
+  to_branch_id    int       [ref: > branches.branch_id]
+  moved_by        int       [ref: > users.user_id]
+  moved_at        datetime  [default: `CURRENT_TIMESTAMP`]
+  status          enum('pending', 'approved', 'rejected') [default: 'pending', not null]
+  notes           text
+}
+
+
+Table contracts {
+  contract_id             int         [pk, increment]
+  contract_number         varchar(50) [unique, not null]
+
+  client_id               int         [ref: > clients.client_id, not null]
+  vehicle_id              int         [ref: > vehicles.vehicle_id, not null]
+  branch_id               int         [ref: > branches.branch_id, not null]
+
+  contract_type           varchar(20)
+  rental_type             varchar(20)
+  rental_days             int
+  kilometers_allowed      int
+  daily_km_limit          int
+  extra_km_price          decimal(10,2)
+
+  start_datetime          datetime [not null]
+  end_datetime            datetime [not null]
+  start_datetime_hijri    varchar(20)
+  end_datetime_hijri      varchar(20)
+
+  insurance_type          varchar(20)
+  daily_rate              decimal(10,2)
+  discount                decimal(10,2)
+  amount_due              decimal(10,2) [not null]
+  amount_paid             decimal(10,2) [not null]
+  payment_method_id       int [ref: > payment_methods.method_id]
+
+  is_booking              boolean [default: false]
+  notes                   text
+  created_by              int [ref: > users.user_id]
+  created_at              datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at              datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (client_id, branch_id)
+    (vehicle_id)
+    (start_datetime)
+    (end_datetime)
+  }
+
+  // Note: 'CHECK (start_datetime < end_datetime)' -- to be enforced manually in DB or app
+}
+
+Table contract_vehicle_authorizations {
+  authorization_id     int       [pk, increment]
+  contract_id          int       [ref: > contracts.contract_id, not null]
+  vehicle_id           int       [ref: > vehicles.vehicle_id, not null]
+  authorization_start_at datetime [default: `CURRENT_TIMESTAMP`, not null] // Added
+  authorization_end_at datetime [not null]
+  created_at           datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (vehicle_id, authorization_end_at) // For active auth queries
+  }
+}
+
+Table contract_renewals {
+  renewal_id       int [pk, increment]
+  contract_id      int [ref: > contracts.contract_id, not null]
+  renewed_at       datetime [default: `CURRENT_TIMESTAMP`]
+  new_contract_id  int [ref: > contracts.contract_id] // العقد المجدد
+  renewed_by       int [ref: > users.user_id]
+  notes            text
+}
+
+
+
+Table payment_methods {
+  method_id        int           [pk, increment]
+  name_ar          varchar(50)   [not null]
+  name_en          varchar(50)
+  is_active        boolean       [default: true]
+}
+
+
+ 
+Table audit_logs {
+  log_id          int          [pk, increment]
+  user_id         int          [ref: > users.user_id] // من قام بالتعديل
+  table_name      varchar(100) [not null]
+  record_id       int          [not null] // المعرف المرتبط بالسجل المعدل
+  action_type     enum('insert', 'update', 'delete') [not null]
+  changes         text         // JSON لتفاصيل التغييرات أو النص الكامل
+  created_at      datetime     [default: `CURRENT_TIMESTAMP`]
+}
+
+
