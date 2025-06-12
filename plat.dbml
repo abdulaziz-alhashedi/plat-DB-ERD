@@ -157,12 +157,11 @@ Table clients {
 Table vehicles {
   vehicle_id        int         [pk, increment]
   plate_number      varchar(20) [unique, not null]
-  brand             varchar(50)
-  model             varchar(50)
-  year              int
-  status            enum('available', 'rented', 'under_maintenance', 'inactive') [default: 'available'] // حالة المركبة
-
-  current_branch_id int [ref: > branches.branch_id]
+  brand             varchar(50) [not null]
+  model             varchar(50) [not null]
+  year              int         [not null]
+  status            enum('available', 'rented', 'under_maintenance', 'inactive') [default: 'available']
+  current_branch_id int [ref: > branches.branch_id, not null]
   created_at        datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -173,6 +172,7 @@ Table vehicle_movements {
   to_branch_id    int       [ref: > branches.branch_id]
   moved_by        int       [ref: > users.user_id]
   moved_at        datetime  [default: `CURRENT_TIMESTAMP`]
+  status          enum('pending', 'approved', 'rejected') [default: 'pending', not null]
   notes           text
 }
 
