@@ -240,13 +240,19 @@ Table rental_rates {
   }
 }
 
-
-
-
-
-
-
-
+Table oil_changes {
+  oil_change_id      int         [pk, increment]
+  car_id            int         [ref: > cars.car_id] // السيارة
+  current_odometer  int         [not null] // عداد الكيلو متر الحالي
+  oil_expiry_odometer int      [not null] // ينتهي الزيت عند كم
+  change_date       date        [not null] // تاريخ تغيير الزيت
+  amount            decimal(10,2) [default: 0.00] // تكلفة تغيير الزيت
+  invoice_number    varchar(50)  // رقم الفاتورة
+  supplier_name     varchar(100) // اسم المورد (اختياري)
+  notes             text         // ملاحظات
+  payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
+  created_at        datetime     [default: `CURRENT_TIMESTAMP`]
+}
 
 
 
