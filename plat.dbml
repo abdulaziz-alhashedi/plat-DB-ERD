@@ -254,6 +254,87 @@ Table oil_changes {
   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
 }
 
+// جداول العملاء ومعلوماتهم
+
+Table identity_types {
+  identity_type_id   int         [pk, increment]
+  identity_type_name_ar varchar(50) [not null, unique] // نوع الهوية بالعربية
+  identity_type_name_en varchar(50) // نوع الهوية بالإنجليزية
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table nationalities {
+  nationality_id     int         [pk, increment]
+  nationality_name_ar varchar(50) [not null, unique] // الجنسية بالعربية
+  nationality_name_en varchar(50) // الجنسية بالإنجليزية
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table professions {
+  profession_id      int         [pk, increment]
+  profession_name_ar varchar(100) [not null, unique] // المهنة بالعربية
+  profession_name_en varchar(100) // المهنة بالإنجليزية
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table client_categories {
+  category_id        int         [pk, increment]
+  category_name_ar   varchar(50) [not null, unique] // تصنيف العميل بالعربية (VIP، عادي، ذهبي...)
+  category_name_en   varchar(50) // تصنيف العميل بالإنجليزية
+  discount_percentage decimal(5,2) [default: 0.00] // نسبة خصم خاصة بالفئة
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table clients {
+  client_id          int         [pk, increment]
+  client_code        varchar(20) [unique] // كود العميل
+  client_name        varchar(100) [not null] // اسم العميل
+  identity_type_id   int         [ref: > identity_types.identity_type_id] // نوع الهوية
+  identity_number    varchar(50) [not null] // رقم الهوية
+  nationality_id     int         [ref: > nationalities.nationality_id] // الجنسية
+  mobile_number      varchar(20) // رقم الجوال
+  work_phone         varchar(20) // هاتف عمل
+  gender             enum('male', 'female') // الجنس
+  profession_id      int         [ref: > professions.profession_id] // المهنة
+  client_category_id int         [ref: > client_categories.category_id] // تصنيف العميل
+  passport_number    varchar(50) // رقم الجواز للطيران
+  correspondence_address text    // عنوان المراسل
+  address            text        // العنوان
+  add_tax_percentage boolean     [default: false] // إضافة الميل للضريبة
+  
+  // التواريخ الميلادية
+  identity_expiry_gregorian date // انتهاء الهوية تاريخ ميلادي
+  birth_date_gregorian     date  // تاريخ الميلاد الميلادي
+  license_expiry_gregorian date  // انتهاء الرخصة تاريخ ميلادي
+  
+  // التواريخ الهجرية
+  identity_expiry_hijri    varchar(20) // انتهاء الهوية هجري
+  birth_date_hijri         varchar(20) // تاريخ الميلاد الهجري
+  license_expiry_hijri     varchar(20) // انتهاء الرخصة هجري
+  
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at         datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    identity_number [unique] // رقم الهوية يجب أن يكون فريد
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
