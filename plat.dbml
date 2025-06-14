@@ -3,7 +3,6 @@ Project platDB {
 }
 
 
-
 Table locations {
   location_id     int  [pk, increment]
   location_name   varchar(100) [not null]
@@ -362,62 +361,129 @@ Table contracts {
 
 Table financial_transactions {
   transaction_id         int         [pk, increment]
-  voucher_number         varchar(50) [unique, not null]  // رقم السند
-  branch_sequence_number int         // تسلسل السند حسب الفرع
-  branch_id              int         [ref: > branches.branch_id, not null]
-  branch_name_snapshot   varchar(100) // لعرض الاسم حتى لو تغير
-
-  transaction_datetime   datetime    [not null]  // تاريخ/وقت العملية
-  transaction_type       enum('receipt', 'payment') [not null]  // قبض / صرف
-  status                 enum('pending', 'completed', 'cancelled') [default: 'completed']
-  
-  // معلومات العملية
-  operation_category     varchar(50) // نوع العملية: "عقد"، "مصاريف"، "تجديد"، ...
-  operation_type         varchar(50) // الإجراء المحدد
-  contract_id            int         [ref: > contracts.contract_id]
-  paper_contract_number  varchar(50) // العقد الورقي (من نسخة مطبوعة)
-
-  // معلومات مالية
+  voucher_number         varchar(50) [unique, not null]
+  transaction_type       enum('receipt', 'payment') [not null]
   amount                 decimal(10,2) [not null]
-  amount_text            varchar(255)
-  currency               varchar(10)  [default: 'SAR'] // العملة
-  exchange_rate          decimal(10,4) [default: 1.0] // سعر الصرف
-  
-  // معلومات الضريبة
-  tax_amount             decimal(10,2) [default: 0.00]
-  tax_id                 int         [ref: > tax_settings.tax_id]
-  tax_number             varchar(50)  // الرقم الضريبي
-  
-  // معلومات الحسابات
-  from_account_id        int         [ref: > accounts.account_id, not null]
-  to_account_id          int         [ref: > accounts.account_id, not null]
-  payment_method_id      int         [ref: > payment_methods.method_id]
-  cost_center            varchar(50)  // مركز التكلفة
-
-  // معلومات إضافية
-  description            text        // البيان
-  notes                  text
-  client_id              int         [ref: > clients.client_id]
-  supplier_name          varchar(100) // اسم المورد (في حالة المصاريف)
-  device_info            varchar(255)
-
-  // معلومات المستخدمين
-  approved_by_id         int         [ref: > users.user_id] // معتمد
+  transaction_datetime   datetime    [not null]
+  status                 enum('pending', 'completed', 'cancelled') [default: 'completed']
+  branch_id              int         [ref: > branches.branch_id, not null]
   created_by             int         [ref: > users.user_id, not null]
   created_at             datetime    [default: `CURRENT_TIMESTAMP`]
-  updated_by             int         [ref: > users.user_id]
   updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
-
+  
   indexes {
     (voucher_number)
     (transaction_datetime)
-    (branch_id, branch_sequence_number) [unique]
-    (client_id)
-    (contract_id)
+    (branch_id)
     (status)
-    (transaction_type)
-    (from_account_id, to_account_id)
   }
+}
+
+Table contract_transactions {
+  contract_transaction_id int       [pk, increment]
+  transaction_id         int        [ref: > financial_transactions.transaction_id]
+  contract_id            int        [ref: > contracts.contract_id]
+  operation_type         enum('new_contract', 'renewal', 'extension', 'payment', 'refund')
+  paper_contract_number  varchar(50)
+  
+  indexes {
+    (transaction_id) [unique]
+    (contract_id)
+    (operation_type)
+  }
+}
+
+// إضافة جدول فئات المصاريف المفقود
+Table expense_categories {
+  category_id      int         [pk, increment]
+  category_name_ar varchar(100) [not null] // اسم فئة المصروفات بالعربية
+  category_name_en varchar(100) // اسم فئة المصروفات بالإنجليزية
+  parent_id        int         [ref: > expense_categories.category_id] // للفئات الفرعية
+  description      text        // وصف الفئة
+  is_active        boolean     [default: true]
+  created_at       datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at       datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (parent_id)
+    (is_active)
+  }
+}
+
+// تصحيح الإشارة في جدول expense_transactions
+Table expense_transactions {
+  expense_transaction_id int       [pk, increment]
+  transaction_id         int       [ref: > financial_transactions.transaction_id]
+  expense_category_id    int       [ref: > expense_categories.category_id]
+  supplier_name          varchar(100)
+  invoice_number         varchar(50)
+  
+  indexes {
+    (transaction_id) [unique]
+    (expense_category_id)
+  }
+}
+
+// جدول تفاصيل الضرائب للمعاملات
+Table transaction_taxes {
+  tax_detail_id         int        [pk, increment]
+  transaction_id        int        [ref: > financial_transactions.transaction_id]
+  tax_id                int        [ref: > tax_settings.tax_id]
+  tax_amount            decimal(10,2) [not null]
+  tax_percentage        decimal(5,2)  [not null]
+  
+  indexes {
+    (transaction_id)
+  }
+}
+
+// جدول أرشفة العقود المنتهية
+Table archived_contracts {
+  archive_id              int         [pk, increment]
+  original_contract_id    int         [not null] // المعرف الأصلي للعقد
+  contract_number         varchar(50) [not null]
+  client_id               int         [not null]
+  car_id                  int         [not null]
+  branch_id               int         [not null]
+  contract_data           json        [not null] // بيانات العقد كاملة بتنسيق JSON
+  start_datetime          datetime    [not null]
+  end_datetime            datetime    [not null]
+  archive_date            datetime    [default: `CURRENT_TIMESTAMP`]
+  archived_by             int         [ref: > users.user_id]
+  
+  indexes {
+    (original_contract_id) [unique]
+    (contract_number)
+    (client_id)
+    (archive_date)
+  }
+}
+
+// جدول أرشفة المعاملات المالية القديمة
+Table archived_transactions {
+  archive_id                int         [pk, increment]
+  original_transaction_id   int         [not null] // المعرف الأصلي للمعاملة
+  transaction_data          json        [not null] // بيانات المعاملة كاملة بتنسيق JSON
+  archive_date              datetime    [default: `CURRENT_TIMESTAMP`]
+  archived_by               int         [ref: > users.user_id]
+  
+  indexes {
+    (original_transaction_id) [unique]
+    (archive_date)
+  }
+}
+
+// إضافة سياسة الأرشفة في جدول الإعدادات
+Table system_settings {
+  setting_id       int         [pk, increment]
+  setting_key      varchar(50) [unique, not null]
+  setting_value    text        [not null]
+  setting_group    varchar(50) [not null]
+  
+  // إعدادات الأرشفة
+  // archive_contracts_after_days: "365"
+  // archive_transactions_after_days: "730"
+  // archive_inactive_clients_after_days: "1095"
 }
 
 Table transaction_categories {
