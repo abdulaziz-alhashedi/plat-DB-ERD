@@ -1,0 +1,224 @@
+Project platDB {
+  database_type : "MySQL"
+}
+
+
+Table contracts {
+  contract_id             int         [pk, increment]
+  contract_number         varchar(50) [unique, not null]
+
+  client_id               int         [ref: > clients.client_id, not null]
+  car_id              int         [ref: > cars.car_id, not null]
+  branch_id               int         [ref: > branches.branch_id, not null]
+
+  contract_type           varchar(20)
+  rental_type             varchar(20)
+  rental_days             int
+  kilometers_allowed      int
+  daily_km_limit          int
+  extra_km_price          decimal(10,2)
+
+  start_datetime          datetime [not null]
+  end_datetime            datetime [not null]
+  start_datetime_hijri    varchar(20)
+  end_datetime_hijri      varchar(20)
+
+  insurance_type          varchar(20)
+  daily_rate              decimal(10,2)
+  discount                decimal(10,2)
+  amount_due              decimal(10,2) [not null]
+  amount_paid             decimal(10,2) [not null]
+  payment_method_id       int [ref: > payment_methods.method_id]
+
+  is_booking              boolean [default: false]
+  notes                   text
+  created_by              int [ref: > users.user_id]
+  created_at              datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at              datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    plate_number [unique] // رقم اللوحة يجب أن يكون فريد
+  }
+}
+
+Table financial_transactions {
+  transaction_id         int         [pk, increment]
+  voucher_number         varchar(50) [unique, not null]  // رقم السند
+  branch_sequence_number int         // تسلسل السند حسب الفرع
+  branch_id              int         [ref: > branches.branch_id, not null]
+  branch_name_snapshot   varchar(100) // لعرض الاسم حتى لو تغير
+
+  transaction_datetime   datetime    [not null]  // تاريخ/وقت العملية
+  transaction_type       enum('receipt', 'payment') [not null]  // قبض / صرف
+  status                 enum('pending', 'completed', 'cancelled') [default: 'completed']
+  
+  // معلومات العملية
+  operation_category     varchar(50) // نوع العملية: "عقد"، "مصاريف"، "تجديد"، ...
+  operation_type         varchar(50) // الإجراء المحدد
+  contract_id            int         [ref: > contracts.contract_id]
+  paper_contract_number  varchar(50) // العقد الورقي (من نسخة مطبوعة)
+
+  // معلومات مالية
+  amount                 decimal(10,2) [not null]
+  amount_text            varchar(255)
+  currency               varchar(10)  [default: 'SAR'] // العملة
+  exchange_rate          decimal(10,4) [default: 1.0] // سعر الصرف
+  
+  // معلومات الضريبة
+  tax_amount             decimal(10,2) [default: 0.00]
+  tax_id                 int         [ref: > tax_settings.tax_id]
+  tax_number             varchar(50)  // الرقم الضريبي
+  
+  // معلومات الحسابات
+  from_account_id        int         [ref: > accounts.account_id, not null]
+  to_account_id          int         [ref: > accounts.account_id, not null]
+  payment_method_id      int         [ref: > payment_methods.method_id]
+  cost_center            varchar(50)  // مركز التكلفة
+
+  // معلومات إضافية
+  description            text        // البيان
+  notes                  text
+  client_id              int         [ref: > clients.client_id]
+  supplier_name          varchar(100) // اسم المورد (في حالة المصاريف)
+  device_info            varchar(255)
+
+  // معلومات المستخدمين
+  approved_by_id         int         [ref: > users.user_id] // معتمد
+  created_by             int         [ref: > users.user_id, not null]
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_by             int         [ref: > users.user_id]
+  updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (voucher_number)
+    (transaction_datetime)
+    (branch_id, branch_sequence_number) [unique]
+    (client_id)
+    (contract_id)
+    (status)
+    (transaction_type)
+    (from_account_id, to_account_id)
+  }
+}
+
+Table accounts {
+  account_id         int         [pk, increment]
+  account_code       varchar(20) [unique, not null]
+  account_name       varchar(100) [not null]
+  account_type       enum('cash', 'client', 'user', 'expense', 'revenue', 'asset', 'liability', 'equity', 'other') [not null]
+  category_id        int         [ref: > account_categories.category_id]
+  sub_type           enum('system', 'client', 'user', 'bank', 'cash', 'other') [not null]
+  related_client_id  int         [ref: > clients.client_id]
+  related_user_id    int         [ref: > users.user_id]
+  opening_balance    decimal(12,2) [default: 0.00]
+  current_balance    decimal(12,2) [default: 0.00]
+  is_active          boolean     [default: true]
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at         datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (account_type)
+    (sub_type)
+    (is_active)
+    (related_client_id)
+    (related_user_id)
+  }
+}
+
+Table account_categories {
+  category_id     int         [pk, increment]
+  category_name   varchar(50) [not null]
+  parent_id       int         [ref: > account_categories.category_id]
+  is_active       boolean     [default: true]
+  
+  indexes {
+    (parent_id)
+    (is_active)
+  }
+}
+
+Table tax_settings {
+  tax_id          int         [pk, increment]
+  tax_name        varchar(50) [not null]
+  tax_percentage  decimal(5,2) [not null]
+  is_active       boolean     [default: true]
+  applies_to      enum('all', 'rentals', 'services') [default: 'all']
+  start_date      date        [not null]
+  end_date        date
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (is_active)
+    (applies_to)
+    (start_date, end_date)
+  }
+}
+
+Table account_movements {
+  movement_id        int         [pk, increment]
+  account_id         int         [ref: > accounts.account_id]
+  transaction_id     int         [ref: > financial_transactions.transaction_id]
+  movement_type      enum('debit', 'credit') [not null]
+  amount             decimal(10,2) [not null]
+  previous_balance   decimal(12,2) [not null]
+  new_balance        decimal(12,2) [not null]
+  movement_date      datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (account_id)
+    (transaction_id)
+    (movement_date)
+    (movement_type)
+  }
+}
+
+Table transaction_category_mapping {
+  mapping_id         int         [pk, increment]
+  transaction_id     int         [ref: > financial_transactions.transaction_id]
+  category_id        int         [ref: > transaction_categories.category_id]
+  
+  indexes {
+    (transaction_id)
+    (category_id)
+  }
+}
+
+
+Table shift_handovers {
+  handover_id       int [pk, increment]
+  from_user_id      int [ref: > users.user_id]
+  to_user_id        int [ref: > users.user_id]
+  cash_amount       decimal(10,2)
+  network_receipts  decimal(10,2)
+  handover_time     datetime [default: `CURRENT_TIMESTAMP`]
+  created_by        int [ref: > users.user_id]
+}
+
+Table administrative_expenses {
+  expense_id        int [pk, increment]
+  transaction_id    int [ref: > transactions.transaction_id]
+  category          varchar(100)
+  description       text
+  created_at        datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+
+
+Table contract_payments_schedule {
+  schedule_id     int         [pk, increment]
+  contract_id     int         [ref: > contracts.contract_id, not null]
+  payment_date    date        [not null]
+  amount_due      decimal(10,2) [not null]
+  status          enum('pending', 'paid', 'overdue', 'cancelled') [default: 'pending']
+  transaction_id  int         [ref: > transactions.transaction_id]
+  reminder_sent   boolean     [default: false]
+  notes           text
+  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (contract_id, payment_date)
+    (status, payment_date)
+  }
+}
