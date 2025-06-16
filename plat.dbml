@@ -82,15 +82,15 @@ Table branches {
   branch_address                    varchar(100)
   
 
-  // Additional branch settings from new image
-  max_count                         int         [default: 1000] // العدد الأقصى (1000 في الصورة)
+  // Branch Laws / Settings from image
+  max_suspended_contracts           int         [default: 1000] // أقصى عدد لتعليق العقود للفرع
   security_camera_link              varchar(255) // رابط كاميرا المراقبة
-  fingerprint_system_link           varchar(255) // رابط نظام البصمة
-  rental_sequence_start             int         [default: 1] // بداية تسلسل المؤجر
-  documents_sequence_start          int         [default: 1] // بداية تسلسل السندات
+  tracking_system_link              varchar(255) // رابط نظام التتبع (كان اسمه fingerprint_system_link)
+  contract_sequence_start           int         [default: 1] // بداية تسلسل رزمة العقود (كان اسمه rental_sequence_start)
+  document_bundle_sequence_start    int         [default: 1] // بداية تسلسل رزمة السندات (كان اسمه documents_sequence_start)
   // Branch limitations and features
-  no_document_updates               boolean     [default: false] // لا يوجد طقورات للسندات لعدم امكانية المقر بتحديث الاسعار
-  no_check_visa_payment             boolean     [default: false] // هذا الفرع لا يدعم القبض بالشيكة او فيزا
+  contract_includes_document        boolean     [default: false] // لا يوجد مطبوعات للسندات لحالها بل العقد متضمن السند (كان اسمه no_document_updates)
+  supports_card_payment             boolean     [default: true] // هذا الفرع يدعم القبض بالشبكة أو فيزا (كان اسمه no_check_visa_payment)
   // Operating hours
   opening_time                      time        // بداية عمل البرنامج يوميا عند الساعة
   closing_time                      time        // إغلاق البرنامج يوميا عند الساعة
