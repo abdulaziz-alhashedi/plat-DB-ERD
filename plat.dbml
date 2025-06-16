@@ -81,6 +81,13 @@ Table branches {
   branch_email                      varchar(100) // البريد الإلكتروني (تبع الفرع)
   branch_address                    varchar(100)
   
+  // Branch Type Flags from image
+  is_rental_office                  boolean     [default: false] // الفرع عبارة عن مكتب تأجير
+  is_maintenance_center             boolean     [default: false] // الفرع عبارة عن مركز صيانة
+  is_limousine_office               boolean     [default: false] // الفرع عبارة عن مكتب ليموزين
+  manages_excluded_cars             boolean     [default: false] // الفرع يتعامل مع سيارات مستبعدة
+  supports_employee_car_service     boolean     [default: false] // الفرع يدعم خدمة سيارات الموظفين
+  supports_shifts_system            boolean     [default: false] // الفرع يدعم نظام الورديات
 
   // Branch Laws / Settings from image
   max_suspended_contracts           int         [default: 1000] // أقصى عدد لتعليق العقود للفرع
