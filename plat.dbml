@@ -183,6 +183,20 @@ Table plate_types {
   created_at       datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
+Table car_statuses {
+  status_id    int         [pk, increment]
+  status_name_ar varchar(50) [not null, unique] // اسم حالة السيارة بالعربية
+  status_name_en varchar(50) // اسم حالة السيارة بالإنجليزية
+  created_at   datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table insurance_types {
+  insurance_type_id    int         [pk, increment]
+  insurance_type_name_ar varchar(50) [not null, unique] // اسم نوع التأمين بالعربية
+  insurance_type_name_en varchar(50) // اسم نوع التأمين بالإنجليزية
+  created_at           datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
 Table model_years {
   model_year_id int [pk, increment]
   year int [not null, unique] // سنة الموديل
@@ -190,6 +204,7 @@ Table model_years {
 
 Table cars {
   car_id          int         [pk, increment]
+  car_status_id   int         [ref: > car_statuses.status_id] // وضع السيارة
   plate_number    varchar(20) [not null] // رقم اللوحة
   model_year_id   int         [ref: > model_years.model_year_id, not null] // سنة الموديل من جدول منفصل
   car_category_id int         [ref: > car_categories.category_id] // تصنيف فئة السيارة
@@ -197,10 +212,46 @@ Table cars {
   brand_id        int         [ref: > car_brands.brand_id] // ماركة السيارة
   model_id        int         [ref: > car_models.model_id] // طراز السيارة
   color_id        int         [ref: > car_colors.color_id] // لون السيارة
-  serial_number   varchar(50) // الرقم التسلسلي
+  serial_number   varchar(50) // الرقم التسلسلي (رقم الهيكل/الشاصي)
+  payload         int         [default: 5] // الحمولة
+  vehicle_weight  int         [default: 0] // وزن المركبة
   odometer_reading int        [default: 0] // عداد الكيلومتر
+  
+  // Owner and User Info
+  owner_name            varchar(100) // اسم المالك
+  owner_id_number       varchar(50)  // رقم هوية المالك
+  actual_user_name      varchar(100) // اسم المستخدم الفعلي
+  actual_user_id_number varchar(50)  // رقم هوية المستخدم الفعلي
+
+  // Insurance Info
+  insurance_type_id       int          [ref: > insurance_types.insurance_type_id] // نوع التأمين
+  insurance_company_name  varchar(100) // اسم شركة التأمين
+  insurance_policy_number varchar(50)  // رقم بوليصة التأمين
+  insurance_value         decimal(10,2) [default: 0.00] // قيمة التأمين
+  deductible_amount       decimal(10,2) [default: 4500.00] // قسط التحمل
+  
+  // Financial, Tamm, and Tracking Info
+  purchase_date                 date          // تاريخ الشراء
+  purchase_price                decimal(10,2) [default: 0.00] // سعر الشراء
+  depreciation_years            int           [default: 4] // عدد سنوات الإهلاك
+  cwa_insurance_rent_increase   decimal(10,2) [default: 0.00] // زيادة سعر الايجار في حال التأمين CWA
+  tamm_user_name                varchar(100)  // اسم المستخدم في تم
+  tamm_password                 varchar(255)  // كلمة السر في تم
+  copy_number                   int           [default: 0] // رقم النسخة
+  technical_link_user_name      varchar(100)  // اسم المستخدم الربط التقني نقل
+  gps_track_imei                varchar(50)   // GPS Track imei
+
   has_tracking_device boolean [default: false] // السيارة تتبع جهاز تتبع
   oil_expiry_days int         [default: 0] // صلاحية انتهاء الزيت بالأيام
+  // Expiry Dates
+  form_license_expiry_date_gregorian      date         // تاريخ انتهاء الاستمارة/الرخصة (ميلادي)
+  form_license_expiry_date_hijri          varchar(10)  // تاريخ انتهاء الاستمارة/الرخصة (هجري)
+  insurance_policy_expiry_date_gregorian  date         // تاريخ انتهاء بوليصة التأمين (ميلادي)
+  insurance_policy_expiry_date_hijri      varchar(10)  // تاريخ انتهاء بوليصة التأمين (هجري)
+  periodic_inspection_expiry_date_gregorian date       // تاريخ انتهاء الفحص الدوري (ميلادي)
+  periodic_inspection_expiry_date_hijri     varchar(10)  // تاريخ انتهاء الفحص الدوري (هجري)
+  operation_card_expiry_date_gregorian    date         // تاريخ انتهاء كارد التشغيل (ميلادي)
+  operation_card_expiry_date_hijri        varchar(10)  // تاريخ انتهاء كارد التشغيل (هجري)
   is_available    boolean     [default: true] // السيارة متاحة
   branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
@@ -252,6 +303,24 @@ Table oil_changes {
   notes             text         // ملاحظات
   payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
+}
+
+Table movement_types {
+  movement_type_id   int         [pk, increment]
+  movement_type_name_ar varchar(100) [not null, unique] // اسم نوع الحركة بالعربية (صيانة, تغيير زيت, تحويل)
+  movement_type_name_en varchar(100) // اسم نوع الحركة بالإنجليزية
+  created_at         datetime    [default: `CURRENT_TIMESTAMP`]
+}
+
+Table car_history {
+  history_id         int      [pk, increment]
+  car_id             int      [ref: > cars.car_id, not null] // السيارة
+  movement_type_id   int      [ref: > movement_types.movement_type_id, not null] // نوع الحركة
+  branch_id          int      [ref: > branches.branch_id] // الفرع الذي تمت فيه الحركة
+  user_id            int      [ref: > users.user_id] // المستخدم الذي قام بالحركة
+  details            text     // البيان التفصيلي والملاحظات
+  event_datetime     datetime [not null] // التاريخ والوقت
+  created_at         datetime [default: `CURRENT_TIMESTAMP`]
 }
 
 // جداول العملاء ومعلوماتهم
