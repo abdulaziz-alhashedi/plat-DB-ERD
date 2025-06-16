@@ -378,6 +378,7 @@ Table clients {
   correspondence_address text    // عنوان المراسل
   address            text        // العنوان
   add_tax_percentage boolean     [default: false] // إضافة الميل للضريبة
+  has_guarantor      boolean     [default: false] // يوجد كفيل غارم / ضامن
   
   // التواريخ الميلادية
   identity_expiry_gregorian date // انتهاء الهوية تاريخ ميلادي
@@ -395,6 +396,21 @@ Table clients {
   indexes {
     identity_number [unique] // رقم الهوية يجب أن يكون فريد
   }
+}
+
+Table guarantors {
+  guarantor_id      int          [pk, increment]
+  client_id         int          [ref: > clients.client_id, unique, not null] // العميل المكفول
+  guarantor_name    varchar(100) [not null] // اسم الكفيل / الشركة
+  id_tax_number     varchar(50)  // رقم الهوية / الرقم الضريبي
+  address           text         // العنوان
+  profession_id     int          [ref: > professions.profession_id] // المهنة
+  nationality_id    int          [ref: > nationalities.nationality_id] // الجنسية
+  employer          varchar(100) // جهة العمل
+  work_phone        varchar(20)  // هاتف عمل
+  mobile_phone      varchar(20)  // هاتف جوال
+  created_at        datetime     [default: `CURRENT_TIMESTAMP`]
+  updated_at        datetime     [default: `CURRENT_TIMESTAMP`]
 }
 
 Table contracts {
