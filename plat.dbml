@@ -5,102 +5,82 @@ Project platDB {
 
 Table locations {
   location_id     int  [pk, increment]
-  location_name   varchar(100) [not null]
-  address         varchar(255)
-  city            varchar(50)
-  region          varchar(50)
-  latitude        decimal(10,8)
-  longitude       decimal(11,8)
+  location_name   varchar(100) [unique, not null, note: 'اسم الموقع']
+  address         varchar(255) [note: 'عنوان الموقع']
+  city            varchar(50) [note: 'المدينة']
+  region          varchar(50) [note: 'المنطقة']
+  latitude        decimal(10,8) [note: 'خط العرض']
+  longitude       decimal(11,8) [note: 'خط الطول']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table months {
   month_id        int         [pk, increment]
-  month_number    int         [unique, not null] // رقم الشهر (1-12)
-  month_name_ar   varchar(20) [not null] // اسم الشهر بالعربية
-  month_name_en   varchar(20) [not null] // اسم الشهر بالإنجليزية
+  month_number    int         [unique, not null, note: 'رقم الشهر (1-12)']
+  month_name_ar   varchar(20) [unique, not null, note: 'اسم الشهر بالعربية']
+  month_name_en   varchar(20) [unique, not null, note: 'اسم الشهر بالإنجليزية']
 }
 
 Table branch_targets {
   target_id                         int         [pk, increment]
-  branch_id                         int         [ref: > branches.branch_id] // الفرع
-  month_id                          int         [ref: > months.month_id] // الشهر
-  target_amount                     decimal(10,2) [default: 0.00] // مبلغ التارجت
+  branch_id                         int         [ref: > branches.branch_id, note: 'الفرع']
+  month_id                          int         [ref: > months.month_id, note: 'الشهر']
+  target_amount                     decimal(10,2) [default: 0.00, note: 'مبلغ التارجت']
   // Target settings (إعدادات التارجت)
-  commission_calculation_percentage  int         [default: 100] // حتى يتم احتساب عمولة الموظف يجب أكمال التارجت المطلوب بنسبة %
-  target_achievement_percentage      decimal(5,2) [default: 1.0] // من تم تحقيق التارجت المطلوب %
-  calculate_commission_full_amount   boolean     [default: false] // احتساب العمولة على كامل المبلغ
-  minimum_rent_additional            int         [default: 85] // سعر الإيجار الأدنى + X ويجب بحسب بنع %
-  minimum_rent_base                  int         [default: 30] // القيمة الأساسية للإيجار الأدنى
+  commission_calculation_percentage  int         [default: 100, note: 'حتى يتم احتساب عمولة الموظف يجب أكمال التارجت المطلوب بنسبة %']
+  target_achievement_percentage      decimal(5,2) [default: 1.0, note: 'من تم تحقيق التارجت المطلوب %']
+  calculate_commission_full_amount   boolean     [default: false, note: 'احتساب العمولة على كامل المبلغ']
+  minimum_rent_additional            int         [default: 85, note: 'سعر الإيجار الأدنى + X ويجب بحسب بنع %']
+  minimum_rent_base                  int         [default: 30, note: 'القيمة الأساسية للإيجار الأدنى']
   created_at                        datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at                        datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    (branch_id, month_id) [unique] // منع تكرار نفس الشهر لنفس الفرع
+    (branch_id, month_id) [unique, note: 'منع تكرار نفس الشهر لنفس الفرع']
   }
 }
 
-Table services {
-  service_id      int         [pk, increment]
-  service_name_ar varchar(100) [not null] // اسم الخدمة بالعربية
-  service_name_en varchar(100) // اسم الخدمة بالإنجليزية
-  description     text        // وصف الخدمة
-  is_active       boolean     [default: true] // فعال/غير فعال
-  created_at      datetime    [default: `CURRENT_TIMESTAMP`]
-}
 
-Table branch_services {
-  branch_service_id int [pk, increment]
-  branch_id         int [ref: > branches.branch_id] // الفرع
-  service_id        int [ref: > services.service_id] // الخدمة
-  is_active         boolean [default: true] // الخدمة فعالة في هذا الفرع
-  start_date        date // تاريخ بداية الخدمة
-  end_date          date // تاريخ انتهاء الخدمة (اختياري)
-  notes             text // ملاحظات خاصة بالخدمة في هذا الفرع
-  created_at        datetime [default: `CURRENT_TIMESTAMP`]
-  
-  indexes {
-    (branch_id, service_id) [unique] // منع تكرار نفس الخدمة لنفس الفرع
-  }
-}
+
+
 
 Table branches {
   branch_id                         int         [pk, increment]
-  branch_code                       varchar(10) [unique, not null] // كود الفرع
-  branch_name_ar                    varchar(100) [not null] // الاسم العربي
-  branch_name_en                    varchar(100) // الاسم الإنجليزي
-  location_id                       int         [ref: > locations.location_id] // الموقع من جدول منفصل    
+  branch_code                       varchar(10) [unique, not null, note: 'كود الفرع']
+  branch_name_ar                    varchar(100) [unique, not null, note: 'الاسم العربي']
+  branch_name_en                    varchar(100) [note: 'الاسم الإنجليزي']
+  location_id                       int         [ref: > locations.location_id, note: 'الموقع من جدول منفصل']    
   // Contact Information
-  phone_number                      varchar(20) // هاتف الفرع
-  license_number                    varchar(50) // رقم ترخيص الفرع
-  branch_license_number             varchar(50) // رقم ترخيص الفرع
+  phone_number                      varchar(20) [note: 'هاتف الفرع']
+  license_number                    varchar(50) [note: 'رقم ترخيص الفرع']
+  branch_license_number             varchar(50) [note: 'رقم ترخيص الفرع']
  //responsible manager information
-  responsible_manager_name          varchar(100) // المدير المسؤول
-  responsible_manager_mobile        varchar(20) // جوال المدير المسؤول
+  responsible_manager_name          varchar(100) [note: 'المدير المسؤول']
+  responsible_manager_mobile        varchar(20) [note: 'جوال المدير المسؤول']
   //branch information
-  branch_email                      varchar(100) // البريد الإلكتروني (تبع الفرع)
-  branch_address                    varchar(100)
+  branch_email                      varchar(100) [note: 'البريد الإلكتروني (تبع الفرع)']
+  branch_address                    varchar(100) [note: 'عنوان الفرع']
   
   // Branch Type Flags from image
-  is_rental_office                  boolean     [default: false] // الفرع عبارة عن مكتب تأجير
-  is_maintenance_center             boolean     [default: false] // الفرع عبارة عن مركز صيانة
-  is_limousine_office               boolean     [default: false] // الفرع عبارة عن مكتب ليموزين
-  manages_excluded_cars             boolean     [default: false] // الفرع يتعامل مع سيارات مستبعدة
-  supports_employee_car_service     boolean     [default: false] // الفرع يدعم خدمة سيارات الموظفين
-  supports_shifts_system            boolean     [default: false] // الفرع يدعم نظام الورديات
+  is_rental_office                  boolean     [default: false, note: 'الفرع عبارة عن مكتب تأجير']
+  is_maintenance_center             boolean     [default: false, note: 'الفرع عبارة عن مركز صيانة']
+  is_limousine_office               boolean     [default: false, note: 'الفرع عبارة عن مكتب ليموزين']
+  manages_excluded_cars             boolean     [default: false, note: 'الفرع يتعامل مع سيارات مستبعدة']
+  supports_employee_car_service     boolean     [default: false, note: 'الفرع يدعم خدمة سيارات الموظفين']
+  supports_shifts_system            boolean     [default: false, note: 'الفرع يدعم نظام الورديات']
 
   // Branch Laws / Settings from image
-  max_suspended_contracts           int         [default: 1000] // أقصى عدد لتعليق العقود للفرع
-  security_camera_link              varchar(255) // رابط كاميرا المراقبة
-  tracking_system_link              varchar(255) // رابط نظام التتبع (كان اسمه fingerprint_system_link)
-  contract_sequence_start           int         [default: 1] // بداية تسلسل رزمة العقود (كان اسمه rental_sequence_start)
-  document_bundle_sequence_start    int         [default: 1] // بداية تسلسل رزمة السندات (كان اسمه documents_sequence_start)
+  max_suspended_contracts           int         [default: 1000, note: 'أقصى عدد لتعليق العقود للفرع']
+  security_camera_link              varchar(255) [note: 'رابط كاميرا المراقبة']
+  tracking_system_link              varchar(255) [note: 'رابط نظام التتبع (كان اسمه fingerprint_system_link)']
+  contract_sequence_start           int         [default: 1, note: 'بداية تسلسل رزمة العقود (كان اسمه rental_sequence_start)']
+  document_bundle_sequence_start    int         [default: 1, note: 'بداية تسلسل رزمة السندات (كان اسمه documents_sequence_start)']
   // Branch limitations and features
-  contract_includes_document        boolean     [default: false] // لا يوجد مطبوعات للسندات لحالها بل العقد متضمن السند (كان اسمه no_document_updates)
-  supports_card_payment             boolean     [default: true] // هذا الفرع يدعم القبض بالشبكة أو فيزا (كان اسمه no_check_visa_payment)
+  contract_includes_document        boolean     [default: false, note: 'لا يوجد مطبوعات للسندات لحالها بل العقد متضمن السند (كان اسمه no_document_updates)']
+  supports_card_payment             boolean     [default: true, note: 'هذا الفرع يدعم القبض بالشبكة أو فيزا (كان اسمه no_check_visa_payment)']
   // Operating hours
-  opening_time                      time        // بداية عمل البرنامج يوميا عند الساعة
-  closing_time                      time        // إغلاق البرنامج يوميا عند الساعة
+  opening_time                      time        [note: 'بداية عمل البرنامج يوميا عند الساعة']
+  closing_time                      time        [note: 'إغلاق البرنامج يوميا عند الساعة']
   created_at                        datetime [default: `CURRENT_TIMESTAMP`]
   updated_at                        datetime [default: `CURRENT_TIMESTAMP`]
 }
@@ -109,17 +89,17 @@ Table branches {
 
 Table permission_groups {
   group_id        int         [pk, increment]
-  group_name      varchar(100) [not null] // اسم مجموعة الصلاحيات
-  description     text        // وصف المجموعة
+  group_name      varchar(100) [unique, not null, note: 'اسم مجموعة الصلاحيات']
+  description     text        [note: 'وصف المجموعة']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table permissions {
   permission_id   int         [pk, increment]
-  permission_key  varchar(50) [unique, not null] // مفتاح الصلاحية
-  description     varchar(255) [not null] // وصف الصلاحية
-  category        varchar(50) // تصنيف الصلاحية
+  permission_key  varchar(50) [unique, not null, note: 'مفتاح الصلاحية']
+  description     varchar(255) [unique, not null, note: 'وصف الصلاحية']
+  category        varchar(50) [note: 'تصنيف الصلاحية']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -129,19 +109,19 @@ Table permission_group_permissions {
   permission_id   int         [ref: > permissions.permission_id]
   
   indexes {
-    (group_id, permission_id) [unique] // لمنع تكرار الصلاحية في نفس المجموعة
+    (group_id, permission_id) [unique, note: 'لمنع تكرار الصلاحية في نفس المجموعة']
   }
 }
 
 Table users {
   user_id         int         [pk, increment]
-  job_number      varchar(20) // الرقم الوظيفي
-  name_ar         varchar(100) [not null] // الاسم العربي
-  name_en         varchar(100) // الاسم الإنجليزي
-  password        varchar(255) [not null] // كلمة المرور (مشفرة)
-  branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
-  permission_group_id int     [ref: > permission_groups.group_id] // مجموعة الصلاحيات
-  is_active       boolean     [default: true] // تفعيل دخول المستخدم
+  job_number      varchar(20) [unique, note: 'الرقم الوظيفي']
+  name_ar         varchar(100) [unique, not null, note: 'الاسم العربي']
+  name_en         varchar(100) [note: 'الاسم الإنجليزي']
+  password        varchar(255) [unique, not null, note: 'كلمة المرور (مشفرة)']
+  branch_id       int         [ref: > branches.branch_id, note: 'الفرع التابع له']
+  permission_group_id int     [ref: > permission_groups.group_id, note: 'مجموعة الصلاحيات']
+  is_active       boolean     [default: true, note: 'تفعيل دخول المستخدم']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
 }
@@ -150,184 +130,173 @@ Table users {
 
 Table car_brands {
   brand_id       int         [pk, increment]
-  brand_name_ar  varchar(50) [not null] // اسم الماركة بالعربية
-  brand_name_en  varchar(50) // اسم الماركة بالإنجليزية
+  brand_name_ar  varchar(50) [unique, not null, note: 'اسم الماركة بالعربية']
+  brand_name_en  varchar(50) [unique, note: 'اسم الماركة بالإنجليزية']
   is_active      boolean     [default: true]
   created_at     datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table car_models {
   model_id       int         [pk, increment]
-  brand_id       int         [ref: > car_brands.brand_id] // الماركة التابع لها
-  model_name_ar  varchar(50) [not null] // اسم الطراز بالعربية
-  model_name_en  varchar(50) // اسم الطراز بالإنجليزية
+  brand_id       int         [ref: > car_brands.brand_id, note: 'الماركة التابع لها']
+  model_name_ar  varchar(50) [unique, not null, note: 'اسم الطراز بالعربية']
+  model_name_en  varchar(50) [unique, note: 'اسم الطراز بالإنجليزية']
   is_active      boolean     [default: true]
   created_at     datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    (brand_id, model_name_ar) [unique] // منع تكرار نفس الطراز لنفس الماركة
+    (brand_id, model_name_ar) [unique, note: 'منع تكرار نفس الطراز لنفس الماركة']
   }
 }
 
-Table car_colors {
-  color_id       int         [pk, increment]
-  color_name_ar  varchar(30) [not null, unique] // اسم اللون بالعربية
-  color_name_en  varchar(30) // اسم اللون بالإنجليزية
-  color_code     varchar(20) // كود اللون
-  created_at     datetime    [default: `CURRENT_TIMESTAMP`]
-}
+
 
 Table car_categories {
   category_id    int         [pk, increment]
-  category_name_ar varchar(50) [not null, unique] // اسم الفئة بالعربية
-  category_name_en varchar(50) // اسم الفئة بالإنجليزية
+  category_name_ar varchar(50) [unique, not null, note: 'اسم الفئة بالعربية']
+  category_name_en varchar(50) [unique, note: 'اسم الفئة بالإنجليزية']
   created_at     datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table plate_types {
   plate_type_id    int         [pk, increment]
-  plate_type_name_ar varchar(50) [not null, unique] // اسم نوع اللوحة بالعربية
-  plate_type_name_en varchar(50) // اسم نوع اللوحة بالإنجليزية
+  plate_type_name_ar varchar(50) [unique, not null, note: 'اسم نوع اللوحة بالعربية']
+  plate_type_name_en varchar(50) [unique, note: 'اسم نوع اللوحة بالإنجليزية']
   created_at       datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table car_statuses {
   status_id    int         [pk, increment]
-  status_name_ar varchar(50) [not null, unique] // اسم حالة السيارة بالعربية
-  status_name_en varchar(50) // اسم حالة السيارة بالإنجليزية
+  status_name_ar varchar(50) [unique, not null, note: 'اسم حالة السيارة بالعربية']
+  status_name_en varchar(50) [unique, note: 'اسم حالة السيارة بالإنجليزية']
   created_at   datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table insurance_types {
   insurance_type_id    int         [pk, increment]
-  insurance_type_name_ar varchar(50) [not null, unique] // اسم نوع التأمين بالعربية
-  insurance_type_name_en varchar(50) // اسم نوع التأمين بالإنجليزية
+  insurance_type_name_ar varchar(50) [unique, not null, note: 'اسم نوع التأمين بالعربية']
+  insurance_type_name_en varchar(50) [unique, note: 'اسم نوع التأمين بالإنجليزية']
   created_at           datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
-Table model_years {
-  model_year_id int [pk, increment]
-  year int [not null, unique] // سنة الموديل
-}
+
 
 Table cars {
   car_id          int         [pk, increment]
-  car_status_id   int         [ref: > car_statuses.status_id] // وضع السيارة
-  plate_number    varchar(20) [not null] // رقم اللوحة
-  model_year_id   int         [ref: > model_years.model_year_id, not null] // سنة الموديل من جدول منفصل
-  car_category_id int         [ref: > car_categories.category_id] // تصنيف فئة السيارة
-  plate_type_id   int         [ref: > plate_types.plate_type_id] // نوع تسجيل اللوحة
-  brand_id        int         [ref: > car_brands.brand_id] // ماركة السيارة
-  model_id        int         [ref: > car_models.model_id] // طراز السيارة
-  color_id        int         [ref: > car_colors.color_id] // لون السيارة
-  serial_number   varchar(50) // الرقم التسلسلي (رقم الهيكل/الشاصي)
-  payload         int         [default: 5] // الحمولة
-  vehicle_weight  int         [default: 0] // وزن المركبة
-  odometer_reading int        [default: 0] // عداد الكيلومتر
+  car_status_id   int         [ref: > car_statuses.status_id, note: 'وضع السيارة']
+  plate_number    varchar(20) [unique, not null, note: 'رقم اللوحة']
+  car_category_id int         [ref: > car_categories.category_id, note: 'تصنيف فئة السيارة']
+  plate_type_id   int         [ref: > plate_types.plate_type_id, note: 'نوع تسجيل اللوحة']
+  brand_id        int         [ref: > car_brands.brand_id, note: 'ماركة السيارة']
+  model_id        int         [ref: > car_models.model_id, note: 'طراز السيارة']
+  serial_number   varchar(50) [unique, note: 'الرقم التسلسلي (رقم الهيكل/الشاصي)']
+  payload         int         [default: 5, note: 'الحمولة']
+  vehicle_weight  int         [default: 0, note: 'وزن المركبة']
+  odometer_reading int        [default: 0, note: 'عداد الكيلومتر']
   
   // Owner and User Info
-  owner_name            varchar(100) // اسم المالك
-  owner_id_number       varchar(50)  // رقم هوية المالك
-  actual_user_name      varchar(100) // اسم المستخدم الفعلي
-  actual_user_id_number varchar(50)  // رقم هوية المستخدم الفعلي
+  owner_name            varchar(100) [note: 'اسم المالك']
+  owner_id_number       varchar(50)  [unique, note: 'رقم هوية المالك']
+  actual_user_name      varchar(100) [note: 'اسم المستخدم الفعلي']
+  actual_user_id_number varchar(50)  [unique, note: 'رقم هوية المستخدم الفعلي']
 
   // Insurance Info
-  insurance_type_id       int          [ref: > insurance_types.insurance_type_id] // نوع التأمين
-  insurance_company_name  varchar(100) // اسم شركة التأمين
-  insurance_policy_number varchar(50)  // رقم بوليصة التأمين
-  insurance_value         decimal(10,2) [default: 0.00] // قيمة التأمين
-  deductible_amount       decimal(10,2) [default: 4500.00] // قسط التحمل
+  insurance_type_id       int          [ref: > insurance_types.insurance_type_id, note: 'نوع التأمين']
+  insurance_company_name  varchar(100) [note: 'اسم شركة التأمين']
+  insurance_policy_number varchar(50)  [unique, note: 'رقم بوليصة التأمين']
+  insurance_value         decimal(10,2) [default: 0.00, note: 'قيمة التأمين']
+  deductible_amount       decimal(10,2) [default: 4500.00, note: 'قسط التحمل']
   
   // Financial, Tamm, and Tracking Info
-  purchase_date                 date          // تاريخ الشراء
-  purchase_price                decimal(10,2) [default: 0.00] // سعر الشراء
-  depreciation_years            int           [default: 4] // عدد سنوات الإهلاك
-  cwa_insurance_rent_increase   decimal(10,2) [default: 0.00] // زيادة سعر الايجار في حال التأمين CWA
-  tamm_user_name                varchar(100)  // اسم المستخدم في تم
-  tamm_password                 varchar(255)  // كلمة السر في تم
-  copy_number                   int           [default: 0] // رقم النسخة
-  technical_link_user_name      varchar(100)  // اسم المستخدم الربط التقني نقل
-  gps_track_imei                varchar(50)   // GPS Track imei
+  purchase_date                 date          [note: 'تاريخ الشراء']
+  purchase_price                decimal(10,2) [default: 0.00, note: 'سعر الشراء']
+  depreciation_years            int           [default: 4, note: 'عدد سنوات الإهلاك']
+  cwa_insurance_rent_increase   decimal(10,2) [default: 0.00, note: 'زيادة سعر الايجار في حال التأمين CWA']
+  tamm_user_name                varchar(100)  [note: 'اسم المستخدم في تم']
+  tamm_password                 varchar(255)  [note: 'كلمة السر في تم']
+  copy_number                   int           [default: 0, note: 'رقم النسخة']
+  technical_link_user_name      varchar(100)  [note: 'اسم المستخدم الربط التقني نقل']
+  gps_track_imei                varchar(50)   [unique, note: 'GPS Track imei']
 
-  has_tracking_device boolean [default: false] // السيارة تتبع جهاز تتبع
-  oil_expiry_days int         [default: 0] // صلاحية انتهاء الزيت بالأيام
+  has_tracking_device boolean [default: false, note: 'السيارة تتبع جهاز تتبع']
+  oil_expiry_days int         [default: 0, note: 'صلاحية انتهاء الزيت بالأيام']
   // Expiry Dates
-  form_license_expiry_date_gregorian      date         // تاريخ انتهاء الاستمارة/الرخصة (ميلادي)
-  form_license_expiry_date_hijri          varchar(10)  // تاريخ انتهاء الاستمارة/الرخصة (هجري)
-  insurance_policy_expiry_date_gregorian  date         // تاريخ انتهاء بوليصة التأمين (ميلادي)
-  insurance_policy_expiry_date_hijri      varchar(10)  // تاريخ انتهاء بوليصة التأمين (هجري)
-  periodic_inspection_expiry_date_gregorian date       // تاريخ انتهاء الفحص الدوري (ميلادي)
-  periodic_inspection_expiry_date_hijri     varchar(10)  // تاريخ انتهاء الفحص الدوري (هجري)
-  operation_card_expiry_date_gregorian    date         // تاريخ انتهاء كارد التشغيل (ميلادي)
-  operation_card_expiry_date_hijri        varchar(10)  // تاريخ انتهاء كارد التشغيل (هجري)
-  is_available    boolean     [default: true] // السيارة متاحة
-  branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
+  form_license_expiry_date_gregorian      date         [note: 'تاريخ انتهاء الاستمارة/الرخصة (ميلادي)']
+  form_license_expiry_date_hijri          varchar(10)  [note: 'تاريخ انتهاء الاستمارة/الرخصة (هجري)']
+  insurance_policy_expiry_date_gregorian  date         [note: 'تاريخ انتهاء بوليصة التأمين (ميلادي)']
+  insurance_policy_expiry_date_hijri      varchar(10)  [note: 'تاريخ انتهاء بوليصة التأمين (هجري)']
+  periodic_inspection_expiry_date_gregorian date       [note: 'تاريخ انتهاء الفحص الدوري (ميلادي)']
+  periodic_inspection_expiry_date_hijri     varchar(10)  [note: 'تاريخ انتهاء الفحص الدوري (هجري)']
+  operation_card_expiry_date_gregorian    date         [note: 'تاريخ انتهاء كارد التشغيل (ميلادي)']
+  operation_card_expiry_date_hijri        varchar(10)  [note: 'تاريخ انتهاء كارد التشغيل (هجري)']
+  is_available    boolean     [default: true, note: 'السيارة متاحة']
+  branch_id       int         [ref: > branches.branch_id, note: 'الفرع التابع له']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    plate_number [unique] // رقم اللوحة يجب أن يكون فريد
+    plate_number [unique, note: 'رقم اللوحة يجب أن يكون فريد']
   }
 }
 
 Table rental_rates {
   rate_id         int         [pk, increment]
-  car_id          int         [ref: > cars.car_id] // السيارة
+  car_id          int         [ref: > cars.car_id, note: 'السيارة']
   // الإيجار اليومي
-  daily_rate      decimal(10,2) [default: 0.00] // سعر إيجار اليوم
-  daily_minimum   decimal(10,2) [default: 0.00] // السعر الأدنى
-  daily_allowed_km int        [default: 0] // كم المسموح يومياً
+  daily_rate      decimal(10,2) [default: 0.00, note: 'سعر إيجار اليوم']
+  daily_minimum   decimal(10,2) [default: 0.00, note: 'السعر الأدنى']
+  daily_allowed_km int        [default: 0, note: 'كم المسموح يومياً']
   // الإيجار بالساعة
-  hourly_rate     decimal(10,2) [default: 0.00] // سعر إيجار الساعة
-  hourly_delay_rate decimal(10,2) [default: 0.00] // سعر الساعة تأخير
+  hourly_rate     decimal(10,2) [default: 0.00, note: 'سعر إيجار الساعة']
+  hourly_delay_rate decimal(10,2) [default: 0.00, note: 'سعر الساعة تأخير']
   // الكيلومتر المفتوح
-  open_km_rate    decimal(10,2) [default: 0.00] // سعر الكيلومتر المفتوح
-  extra_km_rate   decimal(10,2) [default: 0.00] // سعر كم الزائد
+  open_km_rate    decimal(10,2) [default: 0.00, note: 'سعر الكيلومتر المفتوح']
+  extra_km_rate   decimal(10,2) [default: 0.00, note: 'سعر كم الزائد']
   // الإيجار الشهري
-  monthly_rate    decimal(10,2) [default: 0.00] // سعر إيجار الشهر
-  monthly_minimum decimal(10,2) [default: 0.00] // السعر الأدنى للشهر
-  monthly_allowed_km int      [default: 0] // كم المسموح شهرياً
+  monthly_rate    decimal(10,2) [default: 0.00, note: 'سعر إيجار الشهر']
+  monthly_minimum decimal(10,2) [default: 0.00, note: 'السعر الأدنى للشهر']
+  monthly_allowed_km int      [default: 0, note: 'كم المسموح شهرياً']
   // الإيجار بالساعة (إضافي)
-  hourly_extra_km_rate decimal(10,2) [default: 0.00] // سعر كم الساعة الزائد
-  hourly_allowed_km int        [default: 0] // كم المسموح بالساعة
-  hourly_rate_per_hour decimal(10,2) [default: 0.00] // سعر إيجار بالساعة
+  hourly_extra_km_rate decimal(10,2) [default: 0.00, note: 'سعر كم الساعة الزائد']
+  hourly_allowed_km int        [default: 0, note: 'كم المسموح بالساعة']
+  hourly_rate_per_hour decimal(10,2) [default: 0.00, note: 'سعر إيجار بالساعة']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    car_id [unique] // معدل إيجار واحد لكل سيارة
+    car_id [unique, note: 'معدل إيجار واحد لكل سيارة']
   }
 }
 
 Table oil_changes {
   oil_change_id      int         [pk, increment]
-  car_id            int         [ref: > cars.car_id] // السيارة
-  current_odometer  int         [not null] // عداد الكيلو متر الحالي
-  oil_expiry_odometer int      [not null] // ينتهي الزيت عند كم
-  change_date       date        [not null] // تاريخ تغيير الزيت
-  amount            decimal(10,2) [default: 0.00] // تكلفة تغيير الزيت
-  invoice_number    varchar(50)  // رقم الفاتورة
-  supplier_name     varchar(100) // اسم المورد (اختياري)
-  notes             text         // ملاحظات
-  payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
+  car_id            int         [ref: > cars.car_id, note: 'السيارة']
+  current_odometer  int         [not null, note: 'عداد الكيلو متر الحالي']
+  oil_expiry_odometer int      [not null, note: 'ينتهي الزيت عند كم']
+  change_date       date        [not null, note: 'تاريخ تغيير الزيت']
+  amount            decimal(10,2) [default: 0.00, note: 'تكلفة تغيير الزيت']
+  invoice_number    varchar(50)  [unique, note: 'رقم الفاتورة']
+  supplier_name     varchar(100) [note: 'اسم المورد (اختياري)']
+  notes             text         [note: 'ملاحظات']
+  payment_type      varchar(30)  [note: 'نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)']
   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
 }
 
 Table movement_types {
   movement_type_id   int         [pk, increment]
-  movement_type_name_ar varchar(100) [not null, unique] // اسم نوع الحركة بالعربية (صيانة, تغيير زيت, تحويل)
-  movement_type_name_en varchar(100) // اسم نوع الحركة بالإنجليزية
+  movement_type_name_ar varchar(100) [unique, not null, note: 'اسم نوع الحركة بالعربية (صيانة, تغيير زيت, تحويل)']
+  movement_type_name_en varchar(100) [unique, note: 'اسم نوع الحركة بالإنجليزية']
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table car_history {
   history_id         int      [pk, increment]
-  car_id             int      [ref: > cars.car_id, not null] // السيارة
-  movement_type_id   int      [ref: > movement_types.movement_type_id, not null] // نوع الحركة
-  branch_id          int      [ref: > branches.branch_id] // الفرع الذي تمت فيه الحركة
-  user_id            int      [ref: > users.user_id] // المستخدم الذي قام بالحركة
-  details            text     // البيان التفصيلي والملاحظات
-  event_datetime     datetime [not null] // التاريخ والوقت
+  car_id             int      [ref: > cars.car_id, not null, note: 'السيارة']
+  movement_type_id   int      [ref: > movement_types.movement_type_id, not null, note: 'نوع الحركة']
+  branch_id          int      [ref: > branches.branch_id, note: 'الفرع الذي تمت فيه الحركة']
+  user_id            int      [ref: > users.user_id, note: 'المستخدم الذي قام بالحركة']
+  details            text     [note: 'البيان التفصيلي والملاحظات']
+  event_datetime     datetime [not null, note: 'التاريخ والوقت']
   created_at         datetime [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -335,114 +304,114 @@ Table car_history {
 
 Table identity_types {
   identity_type_id   int         [pk, increment]
-  identity_type_name_ar varchar(50) [not null, unique] // نوع الهوية بالعربية
-  identity_type_name_en varchar(50) // نوع الهوية بالإنجليزية
+  identity_type_name_ar varchar(50) [unique, not null, note: 'نوع الهوية بالعربية']
+  identity_type_name_en varchar(50) [unique, note: 'نوع الهوية بالإنجليزية']
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table nationalities {
   nationality_id     int         [pk, increment]
-  nationality_name_ar varchar(50) [not null, unique] // الجنسية بالعربية
-  nationality_name_en varchar(50) // الجنسية بالإنجليزية
+  nationality_name_ar varchar(50) [unique, not null, note: 'الجنسية بالعربية']
+  nationality_name_en varchar(50) [unique, note: 'الجنسية بالإنجليزية']
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table professions {
   profession_id      int         [pk, increment]
-  profession_name_ar varchar(100) [not null, unique] // المهنة بالعربية
-  profession_name_en varchar(100) // المهنة بالإنجليزية
+  profession_name_ar varchar(100) [unique, not null, note: 'المهنة بالعربية']
+  profession_name_en varchar(100) [unique, note: 'المهنة بالإنجليزية']
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table client_categories {
   category_id        int         [pk, increment]
-  category_name_ar   varchar(50) [not null, unique] // تصنيف العميل بالعربية (VIP، عادي، ذهبي...)
-  category_name_en   varchar(50) // تصنيف العميل بالإنجليزية
-  discount_percentage decimal(5,2) [default: 0.00] // نسبة خصم خاصة بالفئة
+  category_name_ar   varchar(50) [unique, not null, note: 'تصنيف العميل بالعربية (VIP، عادي، ذهبي...)']
+  category_name_en   varchar(50) [unique, note: 'تصنيف العميل بالإنجليزية']
+  discount_percentage decimal(5,2) [default: 0.00, note: 'نسبة خصم خاصة بالفئة']
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
 Table clients {
   client_id          int         [pk, increment]
-  client_code        varchar(20) [unique] // كود العميل
-  client_name        varchar(100) [not null] // اسم العميل
-  identity_type_id   int         [ref: > identity_types.identity_type_id] // نوع الهوية
-  identity_number    varchar(50) [not null] // رقم الهوية
-  nationality_id     int         [ref: > nationalities.nationality_id] // الجنسية
-  mobile_number      varchar(20) // رقم الجوال
-  work_phone         varchar(20) // هاتف عمل
-  gender             enum('male', 'female') // الجنس
-  profession_id      int         [ref: > professions.profession_id] // المهنة
-  client_category_id int         [ref: > client_categories.category_id] // تصنيف العميل
-  passport_number    varchar(50) // رقم الجواز للطيران
-  correspondence_address text    // عنوان المراسل
-  address            text        // العنوان
-  add_tax_percentage boolean     [default: false] // إضافة الميل للضريبة
-  has_guarantor      boolean     [default: false] // يوجد كفيل غارم / ضامن
+  client_code        varchar(20) [unique, note: 'كود العميل']
+  client_name        varchar(100) [unique, not null, note: 'اسم العميل']
+  identity_type_id   int         [ref: > identity_types.identity_type_id, note: 'نوع الهوية']
+  identity_number    varchar(50) [unique, not null, note: 'رقم الهوية']
+  nationality_id     int         [ref: > nationalities.nationality_id, note: 'الجنسية']
+  mobile_number      varchar(20) [unique, note: 'رقم الجوال']
+  work_phone         varchar(20) [note: 'هاتف عمل']
+  gender             enum('male', 'female') [note: 'الجنس']
+  profession_id      int         [ref: > professions.profession_id, note: 'المهنة']
+  client_category_id int         [ref: > client_categories.category_id, note: 'تصنيف العميل']
+  passport_number    varchar(50) [unique, note: 'رقم الجواز للطيران']
+  correspondence_address text    [note: 'عنوان المراسل']
+  address            text        [note: 'العنوان']
+  add_tax_percentage boolean     [default: false, note: 'إضافة الميل للضريبة']
+  has_guarantor      boolean     [default: false, note: 'يوجد كفيل غارم / ضامن']
   
   // التواريخ الميلادية
-  identity_expiry_gregorian date // انتهاء الهوية تاريخ ميلادي
-  birth_date_gregorian     date  // تاريخ الميلاد الميلادي
-  license_expiry_gregorian date  // انتهاء الرخصة تاريخ ميلادي
+  identity_expiry_gregorian date [note: 'انتهاء الهوية تاريخ ميلادي']
+  birth_date_gregorian     date  [note: 'تاريخ الميلاد الميلادي']
+  license_expiry_gregorian date  [note: 'انتهاء الرخصة تاريخ ميلادي']
   
   // التواريخ الهجرية
-  identity_expiry_hijri    varchar(20) // انتهاء الهوية هجري
-  birth_date_hijri         varchar(20) // تاريخ الميلاد الهجري
-  license_expiry_hijri     varchar(20) // انتهاء الرخصة هجري
+  identity_expiry_hijri    varchar(20) [note: 'انتهاء الهوية هجري']
+  birth_date_hijri         varchar(20) [note: 'تاريخ الميلاد الهجري']
+  license_expiry_hijri     varchar(20) [note: 'انتهاء الرخصة هجري']
   
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at         datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    identity_number [unique] // رقم الهوية يجب أن يكون فريد
+    identity_number [unique, note: 'رقم الهوية يجب أن يكون فريد']
   }
 }
 
 Table guarantors {
   guarantor_id      int          [pk, increment]
-  client_id         int          [ref: > clients.client_id, unique, not null] // العميل المكفول
-  guarantor_name    varchar(100) [not null] // اسم الكفيل / الشركة
-  id_tax_number     varchar(50)  // رقم الهوية / الرقم الضريبي
-  address           text         // العنوان
-  profession_id     int          [ref: > professions.profession_id] // المهنة
-  nationality_id    int          [ref: > nationalities.nationality_id] // الجنسية
-  employer          varchar(100) // جهة العمل
-  work_phone        varchar(20)  // هاتف عمل
-  mobile_phone      varchar(20)  // هاتف جوال
+  client_id         int          [ref: > clients.client_id, unique, not null, note: 'العميل المكفول']
+  guarantor_name    varchar(100) [unique, not null, note: 'اسم الكفيل / الشركة']
+  id_tax_number     varchar(50)  [unique, note: 'رقم الهوية / الرقم الضريبي']
+  address           text         [note: 'العنوان']
+  profession_id     int          [ref: > professions.profession_id, note: 'المهنة']
+  nationality_id    int          [ref: > nationalities.nationality_id, note: 'الجنسية']
+  employer          varchar(100) [note: 'جهة العمل']
+  work_phone        varchar(20)  [note: 'هاتف عمل']
+  mobile_phone      varchar(20)  [unique, note: 'هاتف جوال']
   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
   updated_at        datetime     [default: `CURRENT_TIMESTAMP`]
 }
 
 Table contracts {
   contract_id             int         [pk, increment]
-  contract_number         varchar(50) [unique, not null]
+  contract_number         varchar(50) [unique, not null, note: 'رقم العقد']
 
-  client_id               int         [ref: > clients.client_id, not null]
-  car_id              int         [ref: > cars.car_id, not null]
-  branch_id               int         [ref: > branches.branch_id, not null]
+  client_id               int         [ref: > clients.client_id, not null, note: 'العميل']
+  car_id              int         [ref: > cars.car_id, not null, note: 'السيارة']
+  branch_id               int         [ref: > branches.branch_id, not null, note: 'الفرع']
 
-  contract_type           varchar(20)
-  rental_type             varchar(20)
-  rental_days             int
-  kilometers_allowed      int
-  daily_km_limit          int
-  extra_km_price          decimal(10,2)
+  contract_type           varchar(20) [note: 'نوع العقد']
+  rental_type             varchar(20) [note: 'نوع الإيجار']
+  rental_days             int         [note: 'عدد أيام الإيجار']
+  kilometers_allowed      int         [note: 'الكيلومترات المسموحة']
+  daily_km_limit          int         [note: 'الحد اليومي للكيلومترات']
+  extra_km_price          decimal(10,2) [note: 'سعر الكيلومتر الإضافي']
 
-  start_datetime          datetime [not null]
-  end_datetime            datetime [not null]
-  start_datetime_hijri    varchar(20)
-  end_datetime_hijri      varchar(20)
+  start_datetime          datetime [not null, note: 'تاريخ ووقت البداية']
+  end_datetime            datetime [not null, note: 'تاريخ ووقت النهاية']
+  start_datetime_hijri    varchar(20) [note: 'تاريخ البداية هجري']
+  end_datetime_hijri      varchar(20) [note: 'تاريخ النهاية هجري']
 
-  insurance_type          varchar(20)
-  daily_rate              decimal(10,2)
-  discount                decimal(10,2)
-  amount_due              decimal(10,2) [not null]
-  amount_paid             decimal(10,2) [not null]
-  payment_method_id       int [ref: > payment_methods.method_id]
+  insurance_type          varchar(20) [note: 'نوع التأمين']
+  daily_rate              decimal(10,2) [note: 'السعر اليومي']
+  discount                decimal(10,2) [note: 'الخصم']
+  amount_due              decimal(10,2) [not null, note: 'المبلغ المستحق']
+  amount_paid             decimal(10,2) [not null, note: 'المبلغ المدفوع']
+  payment_method_id       int [ref: > payment_methods.method_id, note: 'طريقة الدفع']
 
-  is_booking              boolean [default: false]
-  notes                   text
-  created_by              int [ref: > users.user_id]
+  is_booking              boolean [default: false, note: 'حجز']
+  notes                   text [note: 'ملاحظات']
+  created_by              int [ref: > users.user_id, note: 'تم الإنشاء بواسطة']
   created_at              datetime [default: `CURRENT_TIMESTAMP`]
   updated_at              datetime [default: `CURRENT_TIMESTAMP`]
 
@@ -453,13 +422,13 @@ Table contracts {
 
 Table financial_transactions {
   transaction_id         int         [pk, increment]
-  voucher_number         varchar(50) [unique, not null]
-  transaction_type       enum('receipt', 'payment') [not null]
-  amount                 decimal(10,2) [not null]
-  transaction_datetime   datetime    [not null]
-  status                 enum('pending', 'completed', 'cancelled') [default: 'completed']
-  branch_id              int         [ref: > branches.branch_id, not null]
-  created_by             int         [ref: > users.user_id, not null]
+  voucher_number         varchar(50) [unique, not null, note: 'رقم القسيمة']
+  transaction_type       enum('receipt', 'payment') [not null, note: 'نوع المعاملة']
+  amount                 decimal(10,2) [not null, note: 'المبلغ']
+  transaction_datetime   datetime    [not null, note: 'تاريخ ووقت المعاملة']
+  status                 enum('pending', 'completed', 'cancelled') [default: 'completed', note: 'الحالة']
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
   created_at             datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
   
@@ -473,10 +442,10 @@ Table financial_transactions {
 
 Table contract_transactions {
   contract_transaction_id int       [pk, increment]
-  transaction_id         int        [ref: > financial_transactions.transaction_id]
-  contract_id            int        [ref: > contracts.contract_id]
-  operation_type         enum('new_contract', 'renewal', 'extension', 'payment', 'refund')
-  paper_contract_number  varchar(50)
+  transaction_id         int        [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  contract_id            int        [ref: > contracts.contract_id, note: 'العقد']
+  operation_type         enum('new_contract', 'renewal', 'extension', 'payment', 'refund') [note: 'نوع العملية']
+  paper_contract_number  varchar(50) [unique, note: 'رقم العقد الورقي']
   
   indexes {
     (transaction_id) [unique]
@@ -488,10 +457,10 @@ Table contract_transactions {
 // إضافة جدول فئات المصاريف المفقود
 Table expense_categories {
   category_id      int         [pk, increment]
-  category_name_ar varchar(100) [not null] // اسم فئة المصروفات بالعربية
-  category_name_en varchar(100) // اسم فئة المصروفات بالإنجليزية
-  parent_id        int         [ref: > expense_categories.category_id] // للفئات الفرعية
-  description      text        // وصف الفئة
+  category_name_ar varchar(100) [unique, not null, note: 'اسم فئة المصروفات بالعربية']
+  category_name_en varchar(100) [unique, note: 'اسم فئة المصروفات بالإنجليزية']
+  parent_id        int         [ref: > expense_categories.category_id, note: 'للفئات الفرعية']
+  description      text        [note: 'وصف الفئة']
   is_active        boolean     [default: true]
   created_at       datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at       datetime    [default: `CURRENT_TIMESTAMP`]
@@ -505,10 +474,10 @@ Table expense_categories {
 // تصحيح الإشارة في جدول expense_transactions
 Table expense_transactions {
   expense_transaction_id int       [pk, increment]
-  transaction_id         int       [ref: > financial_transactions.transaction_id]
-  expense_category_id    int       [ref: > expense_categories.category_id]
-  supplier_name          varchar(100)
-  invoice_number         varchar(50)
+  transaction_id         int       [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  expense_category_id    int       [ref: > expense_categories.category_id, note: 'فئة المصروفات']
+  supplier_name          varchar(100) [note: 'اسم المورد']
+  invoice_number         varchar(50) [unique, note: 'رقم الفاتورة']
   
   indexes {
     (transaction_id) [unique]
@@ -519,10 +488,10 @@ Table expense_transactions {
 // جدول تفاصيل الضرائب للمعاملات
 Table transaction_taxes {
   tax_detail_id         int        [pk, increment]
-  transaction_id        int        [ref: > financial_transactions.transaction_id]
-  tax_id                int        [ref: > tax_settings.tax_id]
-  tax_amount            decimal(10,2) [not null]
-  tax_percentage        decimal(5,2)  [not null]
+  transaction_id        int        [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  tax_id                int        [ref: > tax_settings.tax_id, note: 'الضريبة']
+  tax_amount            decimal(10,2) [not null, note: 'مبلغ الضريبة']
+  tax_percentage        decimal(5,2)  [not null, note: 'نسبة الضريبة']
   
   indexes {
     (transaction_id)
@@ -532,19 +501,19 @@ Table transaction_taxes {
 // جدول أرشفة العقود المنتهية
 Table archived_contracts {
   archive_id              int         [pk, increment]
-  original_contract_id    int         [not null] // المعرف الأصلي للعقد
-  contract_number         varchar(50) [not null]
-  client_id               int         [not null]
-  car_id                  int         [not null]
-  branch_id               int         [not null]
-  contract_data           json        [not null] // بيانات العقد كاملة بتنسيق JSON
-  start_datetime          datetime    [not null]
-  end_datetime            datetime    [not null]
-  archive_date            datetime    [default: `CURRENT_TIMESTAMP`]
-  archived_by             int         [ref: > users.user_id]
+  original_contract_id    int         [not null, note: 'المعرف الأصلي للعقد']
+  contract_number         varchar(50) [not null, note: 'رقم العقد']
+  client_id               int         [not null, note: 'العميل']
+  car_id                  int         [not null, note: 'السيارة']
+  branch_id               int         [not null, note: 'الفرع']
+  contract_data           json        [not null, note: 'بيانات العقد كاملة بتنسيق JSON']
+  start_datetime          datetime    [not null, note: 'تاريخ البداية']
+  end_datetime            datetime    [not null, note: 'تاريخ النهاية']
+  archive_date            datetime    [default: `CURRENT_TIMESTAMP`, note: 'تاريخ الأرشفة']
+  archived_by             int         [ref: > users.user_id, note: 'تم الأرشفة بواسطة']
   
   indexes {
-    (original_contract_id) [unique]
+    (original_contract_id) [unique, note: 'منع تكرار نفس العقد']
     (contract_number)
     (client_id)
     (archive_date)
@@ -554,13 +523,13 @@ Table archived_contracts {
 // جدول أرشفة المعاملات المالية القديمة
 Table archived_transactions {
   archive_id                int         [pk, increment]
-  original_transaction_id   int         [not null] // المعرف الأصلي للمعاملة
-  transaction_data          json        [not null] // بيانات المعاملة كاملة بتنسيق JSON
-  archive_date              datetime    [default: `CURRENT_TIMESTAMP`]
-  archived_by               int         [ref: > users.user_id]
+  original_transaction_id   int         [not null, note: 'المعرف الأصلي للمعاملة']
+  transaction_data          json        [not null, note: 'بيانات المعاملة كاملة بتنسيق JSON']
+  archive_date              datetime    [default: `CURRENT_TIMESTAMP`, note: 'تاريخ الأرشفة']
+  archived_by               int         [ref: > users.user_id, note: 'تم الأرشفة بواسطة']
   
   indexes {
-    (original_transaction_id) [unique]
+    (original_transaction_id) [unique, note: 'منع تكرار نفس المعاملة']
     (archive_date)
   }
 }
@@ -568,9 +537,9 @@ Table archived_transactions {
 // إضافة سياسة الأرشفة في جدول الإعدادات
 Table system_settings {
   setting_id       int         [pk, increment]
-  setting_key      varchar(50) [unique, not null]
-  setting_value    text        [not null]
-  setting_group    varchar(50) [not null]
+  setting_key      varchar(50) [unique, not null, note: 'مفتاح الإعداد']
+  setting_value    text        [not null, note: 'قيمة الإعداد']
+  setting_group    varchar(50) [not null, note: 'مجموعة الإعداد']
   
   // إعدادات الأرشفة
   // archive_contracts_after_days: "365"
@@ -580,9 +549,9 @@ Table system_settings {
 
 Table transaction_categories {
   category_id        int         [pk, increment]
-  category_name      varchar(50) [not null]
-  parent_id          int         [ref: > transaction_categories.category_id]
-  affects_account_type enum('cash', 'client', 'expense', 'revenue') // نوع الحساب المتأثر
+  category_name      varchar(50) [unique, not null, note: 'اسم الفئة']
+  parent_id          int         [ref: > transaction_categories.category_id, note: 'الفئة الأب']
+  affects_account_type enum('cash', 'client', 'expense', 'revenue') [note: 'نوع الحساب المتأثر']
   is_active          boolean     [default: true]
   
   indexes {
@@ -594,15 +563,15 @@ Table transaction_categories {
 
 Table accounts {
   account_id         int         [pk, increment]
-  account_code       varchar(20) [unique, not null]
-  account_name       varchar(100) [not null]
-  account_type       enum('cash', 'client', 'user', 'expense', 'revenue', 'asset', 'liability', 'equity', 'other') [not null]
-  category_id        int         [ref: > account_categories.category_id]
-  sub_type           enum('system', 'client', 'user', 'bank', 'cash', 'other') [not null]
-  related_client_id  int         [ref: > clients.client_id]
-  related_user_id    int         [ref: > users.user_id]
-  opening_balance    decimal(12,2) [default: 0.00]
-  current_balance    decimal(12,2) [default: 0.00]
+  account_code       varchar(20) [unique, not null, note: 'كود الحساب']
+  account_name       varchar(100) [unique, not null, note: 'اسم الحساب']
+  account_type       enum('cash', 'client', 'user', 'expense', 'revenue', 'asset', 'liability', 'equity', 'other') [not null, note: 'نوع الحساب']
+  category_id        int         [ref: > account_categories.category_id, note: 'فئة الحساب']
+  sub_type           enum('system', 'client', 'user', 'bank', 'cash', 'other') [not null, note: 'النوع الفرعي']
+  related_client_id  int         [ref: > clients.client_id, note: 'العميل المرتبط']
+  related_user_id    int         [ref: > users.user_id, note: 'المستخدم المرتبط']
+  opening_balance    decimal(12,2) [default: 0.00, note: 'الرصيد الافتتاحي']
+  current_balance    decimal(12,2) [default: 0.00, note: 'الرصيد الحالي']
   is_active          boolean     [default: true]
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at         datetime    [default: `CURRENT_TIMESTAMP`]
@@ -618,8 +587,8 @@ Table accounts {
 
 Table account_categories {
   category_id     int         [pk, increment]
-  category_name   varchar(50) [not null]
-  parent_id       int         [ref: > account_categories.category_id]
+  category_name   varchar(50) [unique, not null, note: 'اسم فئة الحساب']
+  parent_id       int         [ref: > account_categories.category_id, note: 'الفئة الأب']
   is_active       boolean     [default: true]
   
   indexes {
@@ -630,12 +599,12 @@ Table account_categories {
 
 Table tax_settings {
   tax_id          int         [pk, increment]
-  tax_name        varchar(50) [not null]
-  tax_percentage  decimal(5,2) [not null]
+  tax_name        varchar(50) [unique, not null, note: 'اسم الضريبة']
+  tax_percentage  decimal(5,2) [not null, note: 'نسبة الضريبة']
   is_active       boolean     [default: true]
-  applies_to      enum('all', 'rentals', 'services') [default: 'all']
-  start_date      date        [not null]
-  end_date        date
+  applies_to      enum('all', 'rentals', 'services') [default: 'all', note: 'يطبق على']
+  start_date      date        [not null, note: 'تاريخ البداية']
+  end_date        date        [note: 'تاريخ النهاية']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
@@ -648,13 +617,13 @@ Table tax_settings {
 
 Table account_movements {
   movement_id        int         [pk, increment]
-  account_id         int         [ref: > accounts.account_id]
-  transaction_id     int         [ref: > financial_transactions.transaction_id]
-  movement_type      enum('debit', 'credit') [not null]
-  amount             decimal(10,2) [not null]
-  previous_balance   decimal(12,2) [not null]
-  new_balance        decimal(12,2) [not null]
-  movement_date      datetime    [default: `CURRENT_TIMESTAMP`]
+  account_id         int         [ref: > accounts.account_id, note: 'الحساب']
+  transaction_id     int         [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  movement_type      enum('debit', 'credit') [not null, note: 'نوع الحركة']
+  amount             decimal(10,2) [not null, note: 'المبلغ']
+  previous_balance   decimal(12,2) [not null, note: 'الرصيد السابق']
+  new_balance        decimal(12,2) [not null, note: 'الرصيد الجديد']
+  movement_date      datetime    [default: `CURRENT_TIMESTAMP`, note: 'تاريخ الحركة']
   
   indexes {
     (account_id)
@@ -666,8 +635,8 @@ Table account_movements {
 
 Table transaction_category_mapping {
   mapping_id         int         [pk, increment]
-  transaction_id     int         [ref: > financial_transactions.transaction_id]
-  category_id        int         [ref: > transaction_categories.category_id]
+  transaction_id     int         [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  category_id        int         [ref: > transaction_categories.category_id, note: 'فئة المعاملة']
   
   indexes {
     (transaction_id)
@@ -679,27 +648,27 @@ Table transaction_category_mapping {
 
 Table payment_methods {
   method_id        int           [pk, increment]
-  name_ar          varchar(50)   [not null]
-  name_en          varchar(50)
+  name_ar          varchar(50)   [unique, not null, note: 'الاسم العربي']
+  name_en          varchar(50)   [unique, note: 'الاسم الإنجليزي']
   is_active        boolean       [default: true]
 }
 
 
 Table shift_handovers {
   handover_id       int [pk, increment]
-  from_user_id      int [ref: > users.user_id]
-  to_user_id        int [ref: > users.user_id]
-  cash_amount       decimal(10,2)
-  network_receipts  decimal(10,2)
-  handover_time     datetime [default: `CURRENT_TIMESTAMP`]
-  created_by        int [ref: > users.user_id]
+  from_user_id      int [ref: > users.user_id, note: 'من المستخدم']
+  to_user_id        int [ref: > users.user_id, note: 'إلى المستخدم']
+  cash_amount       decimal(10,2) [note: 'مبلغ النقد']
+  network_receipts  decimal(10,2) [note: 'إيصالات الشبكة']
+  handover_time     datetime [default: `CURRENT_TIMESTAMP`, note: 'وقت التسليم']
+  created_by        int [ref: > users.user_id, note: 'تم الإنشاء بواسطة']
 }
 
 Table administrative_expenses {
   expense_id        int [pk, increment]
-  transaction_id    int [ref: > financial_transactions.transaction_id]
-  category          varchar(100)
-  description       text
+  transaction_id    int [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  category          varchar(100) [note: 'الفئة']
+  description       text [note: 'الوصف']
   created_at        datetime [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -707,13 +676,13 @@ Table administrative_expenses {
 
 Table contract_payments_schedule {
   schedule_id     int         [pk, increment]
-  contract_id     int         [ref: > contracts.contract_id, not null]
-  payment_date    date        [not null]
-  amount_due      decimal(10,2) [not null]
-  status          enum('pending', 'paid', 'overdue', 'cancelled') [default: 'pending']
-  transaction_id  int         [ref: > financial_transactions.transaction_id]
-  reminder_sent   boolean     [default: false]
-  notes           text
+  contract_id     int         [ref: > contracts.contract_id, not null, note: 'العقد']
+  payment_date    date        [not null, note: 'تاريخ الدفع']
+  amount_due      decimal(10,2) [not null, note: 'المبلغ المستحق']
+  status          enum('pending', 'paid', 'overdue', 'cancelled') [default: 'pending', note: 'الحالة']
+  transaction_id  int         [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  reminder_sent   boolean     [default: false, note: 'تم إرسال التذكير']
+  notes           text [note: 'ملاحظات']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
