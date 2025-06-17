@@ -1,5 +1,167 @@
 Project platDB {
   database_type : "MySQL"
+  Note: '''
+  نظام إدارة شركة تأجير السيارات
+  تم استخدام Enums لتحسين بنية البيانات وضمان اتساقها
+  '''
+}
+
+// Enum Definitions
+enum gender {
+  male
+  female
+}
+
+enum transaction_type {
+  receipt
+  payment
+}
+
+enum transaction_status {
+  pending
+  completed
+  cancelled
+}
+
+enum operation_type {
+  new_contract
+  renewal
+  extension
+  payment
+  refund
+}
+
+enum rental_type {
+  daily
+  monthly
+  hourly
+  weekly
+}
+
+enum contract_type {
+  normal
+  vip
+  commercial
+  government
+  corporate
+}
+
+enum insurance_type {
+  comprehensive
+  third_party
+  basic
+  premium
+}
+
+enum payment_type {
+  cash
+  card
+  invoice
+  deferred
+  bank_transfer
+}
+
+enum plate_type {
+  private
+  commercial
+  diplomatic
+  government
+  temporary
+}
+
+enum car_status {
+  available
+  rented
+  maintenance
+  out_of_service
+  sold
+  transferred
+}
+
+enum identity_type {
+  national_id
+  passport
+  iqama
+  driving_license
+  business_license
+}
+
+enum account_type {
+  cash
+  client
+  user
+  expense
+  revenue
+  asset
+  liability
+  equity
+  other
+}
+
+enum account_sub_type {
+  system
+  client
+  user
+  bank
+  cash
+  other
+}
+
+enum tax_applies_to {
+  all
+  rentals
+  services
+}
+
+enum movement_type {
+  debit
+  credit
+}
+
+enum payment_schedule_status {
+  pending
+  paid
+  overdue
+  cancelled
+}
+
+// Additional useful enums
+enum car_availability {
+  available
+  unavailable
+  maintenance
+  rented
+  reserved
+}
+
+enum contract_status {
+  active
+  completed
+  cancelled
+  suspended
+  expired
+}
+
+enum document_status {
+  pending
+  approved
+  rejected
+  expired
+}
+
+enum notification_type {
+  email
+  sms
+  push
+  system
+}
+
+enum audit_action {
+  create
+  update
+  delete
+  login
+  logout
 }
 
 Table locations {
@@ -161,14 +323,6 @@ Table car_models {
   }
 }
 
-Table car_colors {
-  color_id       int         [pk, increment]
-  color_name_ar  varchar(30) [not null, unique] // اسم اللون بالعربية
-  color_name_en  varchar(30) // اسم اللون بالإنجليزية
-  color_code     varchar(20) // كود اللون
-  created_at     datetime    [default: `CURRENT_TIMESTAMP`]
-}
-
 Table car_categories {
   category_id    int         [pk, increment]
   category_name_ar varchar(50) [not null, unique] // اسم الفئة بالعربية
@@ -176,33 +330,56 @@ Table car_categories {
   created_at     datetime    [default: `CURRENT_TIMESTAMP`]
 }
 
-Table plate_types {
-  plate_type_id    int         [pk, increment]
-  plate_type_name_ar varchar(50) [not null, unique] // اسم نوع اللوحة بالعربية
-  plate_type_name_en varchar(50) // اسم نوع اللوحة بالإنجليزية
-  created_at       datetime    [default: `CURRENT_TIMESTAMP`]
-}
-
-Table model_years {
-  model_year_id int [pk, increment]
-  year int [not null, unique] // سنة الموديل
-}
-
 Table cars {
   car_id          int         [pk, increment]
-  plate_number    varchar(20) [not null] // رقم اللوحة
-  model_year_id   int         [ref: > model_years.model_year_id, not null] // سنة الموديل من جدول منفصل
-  car_category_id int         [ref: > car_categories.category_id] // تصنيف فئة السيارة
-  plate_type_id   int         [ref: > plate_types.plate_type_id] // نوع تسجيل اللوحة
-  brand_id        int         [ref: > car_brands.brand_id] // ماركة السيارة
-  model_id        int         [ref: > car_models.model_id] // طراز السيارة
-  color_id        int         [ref: > car_colors.color_id] // لون السيارة
-  serial_number   varchar(50) // الرقم التسلسلي
-  odometer_reading int        [default: 0] // عداد الكيلومتر
-  has_tracking_device boolean [default: false] // السيارة تتبع جهاز تتبع
-  oil_expiry_days int         [default: 0] // صلاحية انتهاء الزيت بالأيام
-  is_available    boolean     [default: true] // السيارة متاحة
-  branch_id       int         [ref: > branches.branch_id] // الفرع التابع له
+  car_status      car_status  [note: 'وضع السيارة']
+  plate_number    varchar(20) [unique, not null, note: 'رقم اللوحة']
+  car_category_id int         [ref: > car_categories.category_id, note: 'تصنيف فئة السيارة']
+  plate_type      plate_type  [note: 'نوع تسجيل اللوحة']
+  brand_id        int         [ref: > car_brands.brand_id, note: 'ماركة السيارة']
+  model_id        int         [ref: > car_models.model_id, note: 'طراز السيارة']
+  serial_number   varchar(50) [unique, note: 'الرقم التسلسلي (رقم الهيكل/الشاصي)']
+  payload         int         [default: 5, note: 'الحمولة']
+  vehicle_weight  int         [default: 0, note: 'وزن المركبة']
+  odometer_reading int        [default: 0, note: 'عداد الكيلومتر']
+  
+  // Owner and User Info
+  owner_name            varchar(100) [note: 'اسم المالك']
+  owner_id_number       varchar(50)  [unique, note: 'رقم هوية المالك']
+  actual_user_name      varchar(100) [note: 'اسم المستخدم الفعلي']
+  actual_user_id_number varchar(50)  [unique, note: 'رقم هوية المستخدم الفعلي']
+
+  // Insurance Info
+  insurance_type        insurance_type [note: 'نوع التأمين']
+  insurance_company_name  varchar(100) [note: 'اسم شركة التأمين']
+  insurance_policy_number varchar(50)  [unique, note: 'رقم بوليصة التأمين']
+  insurance_value         decimal(10,2) [default: 0.00, note: 'قيمة التأمين']
+  deductible_amount       decimal(10,2) [default: 4500.00, note: 'قسط التحمل']
+  
+  // Financial, Tamm, and Tracking Info
+  purchase_date                 date          [note: 'تاريخ الشراء']
+  purchase_price                decimal(10,2) [default: 0.00, note: 'سعر الشراء']
+  depreciation_years            int           [default: 4, note: 'عدد سنوات الإهلاك']
+  cwa_insurance_rent_increase   decimal(10,2) [default: 0.00, note: 'زيادة سعر الايجار في حال التأمين CWA']
+  tamm_user_name                varchar(100)  [note: 'اسم المستخدم في تم']
+  tamm_password                 varchar(255)  [note: 'كلمة السر في تم']
+  copy_number                   int           [default: 0, note: 'رقم النسخة']
+  technical_link_user_name      varchar(100)  [note: 'اسم المستخدم الربط التقني نقل']
+  gps_track_imei                varchar(50)   [unique, note: 'GPS Track imei']
+
+  has_tracking_device boolean [default: false, note: 'السيارة تتبع جهاز تتبع']
+  oil_expiry_days int         [default: 0, note: 'صلاحية انتهاء الزيت بالأيام']
+  // Expiry Dates
+  form_license_expiry_date_gregorian      date         [note: 'تاريخ انتهاء الاستمارة/الرخصة (ميلادي)']
+  form_license_expiry_date_hijri          varchar(10)  [note: 'تاريخ انتهاء الاستمارة/الرخصة (هجري)']
+  insurance_policy_expiry_date_gregorian  date         [note: 'تاريخ انتهاء بوليصة التأمين (ميلادي)']
+  insurance_policy_expiry_date_hijri      varchar(10)  [note: 'تاريخ انتهاء بوليصة التأمين (هجري)']
+  periodic_inspection_expiry_date_gregorian date       [note: 'تاريخ انتهاء الفحص الدوري (ميلادي)']
+  periodic_inspection_expiry_date_hijri     varchar(10)  [note: 'تاريخ انتهاء الفحص الدوري (هجري)']
+  operation_card_expiry_date_gregorian    date         [note: 'تاريخ انتهاء كارد التشغيل (ميلادي)']
+  operation_card_expiry_date_hijri        varchar(10)  [note: 'تاريخ انتهاء كارد التشغيل (هجري)']
+  is_available    car_availability [default: 'available', note: 'حالة توفر السيارة']
+  branch_id       int         [ref: > branches.branch_id, note: 'الفرع التابع له']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
@@ -242,6 +419,15 @@ Table rental_rates {
 
 Table oil_changes {
   oil_change_id      int         [pk, increment]
+  car_id            int         [ref: > cars.car_id, note: 'السيارة']
+  current_odometer  int         [not null, note: 'عداد الكيلو متر الحالي']
+  oil_expiry_odometer int      [not null, note: 'ينتهي الزيت عند كم']
+  change_date       date        [not null, note: 'تاريخ تغيير الزيت']
+  amount            decimal(10,2) [default: 0.00, note: 'تكلفة تغيير الزيت']
+  invoice_number    varchar(50)  [unique, note: 'رقم الفاتورة']
+  supplier_name     varchar(100) [note: 'اسم المورد (اختياري)']
+  notes             text         [note: 'ملاحظات']
+  payment_type      payment_type [note: 'نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)']
   car_id            int         [ref: > cars.car_id] // السيارة
   current_odometer  int         [not null] // عداد الكيلو متر الحالي
   oil_expiry_odometer int      [not null] // ينتهي الزيت عند كم
@@ -287,20 +473,21 @@ Table client_categories {
 
 Table clients {
   client_id          int         [pk, increment]
-  client_code        varchar(20) [unique] // كود العميل
-  client_name        varchar(100) [not null] // اسم العميل
-  identity_type_id   int         [ref: > identity_types.identity_type_id] // نوع الهوية
-  identity_number    varchar(50) [not null] // رقم الهوية
-  nationality_id     int         [ref: > nationalities.nationality_id] // الجنسية
-  mobile_number      varchar(20) // رقم الجوال
-  work_phone         varchar(20) // هاتف عمل
-  gender             enum('male', 'female') // الجنس
-  profession_id      int         [ref: > professions.profession_id] // المهنة
-  client_category_id int         [ref: > client_categories.category_id] // تصنيف العميل
-  passport_number    varchar(50) // رقم الجواز للطيران
-  correspondence_address text    // عنوان المراسل
-  address            text        // العنوان
-  add_tax_percentage boolean     [default: false] // إضافة الميل للضريبة
+  client_code        varchar(20) [unique, note: 'كود العميل']
+  client_name        varchar(100) [unique, not null, note: 'اسم العميل']
+  identity_type      identity_type [note: 'نوع الهوية']
+  identity_number    varchar(50) [unique, not null, note: 'رقم الهوية']
+  nationality_id     int         [ref: > nationalities.nationality_id, note: 'الجنسية']
+  mobile_number      varchar(20) [unique, note: 'رقم الجوال']
+  work_phone         varchar(20) [note: 'هاتف عمل']
+  gender             gender      [note: 'الجنس']
+  profession_id      int         [ref: > professions.profession_id, note: 'المهنة']
+  client_category_id int         [ref: > client_categories.category_id, note: 'تصنيف العميل']
+  passport_number    varchar(50) [unique, note: 'رقم الجواز للطيران']
+  correspondence_address text    [note: 'عنوان المراسل']
+  address            text        [note: 'العنوان']
+  add_tax_percentage boolean     [default: false, note: 'إضافة الميل للضريبة']
+  has_guarantor      boolean     [default: false, note: 'يوجد كفيل غارم / ضامن']
   
   // التواريخ الميلادية
   identity_expiry_gregorian date // انتهاء الهوية تاريخ ميلادي
@@ -328,28 +515,29 @@ Table contracts {
   car_id              int         [ref: > cars.car_id, not null]
   branch_id               int         [ref: > branches.branch_id, not null]
 
-  contract_type           varchar(20)
-  rental_type             varchar(20)
-  rental_days             int
-  kilometers_allowed      int
-  daily_km_limit          int
-  extra_km_price          decimal(10,2)
+  contract_type           contract_type [note: 'نوع العقد']
+  rental_type             rental_type [note: 'نوع الإيجار']
+  rental_days             int         [note: 'عدد أيام الإيجار']
+  kilometers_allowed      int         [note: 'الكيلومترات المسموحة']
+  daily_km_limit          int         [note: 'الحد اليومي للكيلومترات']
+  extra_km_price          decimal(10,2) [note: 'سعر الكيلومتر الإضافي']
 
   start_datetime          datetime [not null]
   end_datetime            datetime [not null]
   start_datetime_hijri    varchar(20)
   end_datetime_hijri      varchar(20)
 
-  insurance_type          varchar(20)
-  daily_rate              decimal(10,2)
-  discount                decimal(10,2)
-  amount_due              decimal(10,2) [not null]
-  amount_paid             decimal(10,2) [not null]
-  payment_method_id       int [ref: > payment_methods.method_id]
+  insurance_type          insurance_type [note: 'نوع التأمين']
+  daily_rate              decimal(10,2) [note: 'السعر اليومي']
+  discount                decimal(10,2) [note: 'الخصم']
+  amount_due              decimal(10,2) [not null, note: 'المبلغ المستحق']
+  amount_paid             decimal(10,2) [not null, note: 'المبلغ المدفوع']
+  payment_method_id       int [ref: > payment_methods.method_id, note: 'طريقة الدفع']
 
-  is_booking              boolean [default: false]
-  notes                   text
-  created_by              int [ref: > users.user_id]
+  status                  contract_status [default: 'active', note: 'حالة العقد']
+  is_booking              boolean [default: false, note: 'حجز']
+  notes                   text [note: 'ملاحظات']
+  created_by              int [ref: > users.user_id, note: 'تم الإنشاء بواسطة']
   created_at              datetime [default: `CURRENT_TIMESTAMP`]
   updated_at              datetime [default: `CURRENT_TIMESTAMP`]
 
@@ -360,13 +548,13 @@ Table contracts {
 
 Table financial_transactions {
   transaction_id         int         [pk, increment]
-  voucher_number         varchar(50) [unique, not null]
-  transaction_type       enum('receipt', 'payment') [not null]
-  amount                 decimal(10,2) [not null]
-  transaction_datetime   datetime    [not null]
-  status                 enum('pending', 'completed', 'cancelled') [default: 'completed']
-  branch_id              int         [ref: > branches.branch_id, not null]
-  created_by             int         [ref: > users.user_id, not null]
+  voucher_number         varchar(50) [unique, not null, note: 'رقم القسيمة']
+  transaction_type       transaction_type [not null, note: 'نوع المعاملة']
+  amount                 decimal(10,2) [not null, note: 'المبلغ']
+  transaction_datetime   datetime    [not null, note: 'تاريخ ووقت المعاملة']
+  status                 transaction_status [default: 'completed', note: 'الحالة']
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
   created_at             datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
   
@@ -380,10 +568,10 @@ Table financial_transactions {
 
 Table contract_transactions {
   contract_transaction_id int       [pk, increment]
-  transaction_id         int        [ref: > financial_transactions.transaction_id]
-  contract_id            int        [ref: > contracts.contract_id]
-  operation_type         enum('new_contract', 'renewal', 'extension', 'payment', 'refund')
-  paper_contract_number  varchar(50)
+  transaction_id         int        [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  contract_id            int        [ref: > contracts.contract_id, note: 'العقد']
+  operation_type         operation_type [note: 'نوع العملية']
+  paper_contract_number  varchar(50) [unique, note: 'رقم العقد الورقي']
   
   indexes {
     (transaction_id) [unique]
@@ -501,15 +689,15 @@ Table transaction_categories {
 
 Table accounts {
   account_id         int         [pk, increment]
-  account_code       varchar(20) [unique, not null]
-  account_name       varchar(100) [not null]
-  account_type       enum('cash', 'client', 'user', 'expense', 'revenue', 'asset', 'liability', 'equity', 'other') [not null]
-  category_id        int         [ref: > account_categories.category_id]
-  sub_type           enum('system', 'client', 'user', 'bank', 'cash', 'other') [not null]
-  related_client_id  int         [ref: > clients.client_id]
-  related_user_id    int         [ref: > users.user_id]
-  opening_balance    decimal(12,2) [default: 0.00]
-  current_balance    decimal(12,2) [default: 0.00]
+  account_code       varchar(20) [unique, not null, note: 'كود الحساب']
+  account_name       varchar(100) [unique, not null, note: 'اسم الحساب']
+  account_type       account_type [not null, note: 'نوع الحساب']
+  category_id        int         [ref: > account_categories.category_id, note: 'فئة الحساب']
+  sub_type           account_sub_type [not null, note: 'النوع الفرعي']
+  related_client_id  int         [ref: > clients.client_id, note: 'العميل المرتبط']
+  related_user_id    int         [ref: > users.user_id, note: 'المستخدم المرتبط']
+  opening_balance    decimal(12,2) [default: 0.00, note: 'الرصيد الافتتاحي']
+  current_balance    decimal(12,2) [default: 0.00, note: 'الرصيد الحالي']
   is_active          boolean     [default: true]
   created_at         datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at         datetime    [default: `CURRENT_TIMESTAMP`]
@@ -540,9 +728,9 @@ Table tax_settings {
   tax_name        varchar(50) [not null]
   tax_percentage  decimal(5,2) [not null]
   is_active       boolean     [default: true]
-  applies_to      enum('all', 'rentals', 'services') [default: 'all']
-  start_date      date        [not null]
-  end_date        date
+  applies_to      tax_applies_to [default: 'all', note: 'يطبق على']
+  start_date      date        [not null, note: 'تاريخ البداية']
+  end_date        date        [note: 'تاريخ النهاية']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
@@ -555,13 +743,13 @@ Table tax_settings {
 
 Table account_movements {
   movement_id        int         [pk, increment]
-  account_id         int         [ref: > accounts.account_id]
-  transaction_id     int         [ref: > financial_transactions.transaction_id]
-  movement_type      enum('debit', 'credit') [not null]
-  amount             decimal(10,2) [not null]
-  previous_balance   decimal(12,2) [not null]
-  new_balance        decimal(12,2) [not null]
-  movement_date      datetime    [default: `CURRENT_TIMESTAMP`]
+  account_id         int         [ref: > accounts.account_id, note: 'الحساب']
+  transaction_id     int         [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  movement_type      movement_type [not null, note: 'نوع الحركة']
+  amount             decimal(10,2) [not null, note: 'المبلغ']
+  previous_balance   decimal(12,2) [not null, note: 'الرصيد السابق']
+  new_balance        decimal(12,2) [not null, note: 'الرصيد الجديد']
+  movement_date      datetime    [default: `CURRENT_TIMESTAMP`, note: 'تاريخ الحركة']
   
   indexes {
     (account_id)
@@ -614,13 +802,13 @@ Table administrative_expenses {
 
 Table contract_payments_schedule {
   schedule_id     int         [pk, increment]
-  contract_id     int         [ref: > contracts.contract_id, not null]
-  payment_date    date        [not null]
-  amount_due      decimal(10,2) [not null]
-  status          enum('pending', 'paid', 'overdue', 'cancelled') [default: 'pending']
-  transaction_id  int         [ref: > financial_transactions.transaction_id]
-  reminder_sent   boolean     [default: false]
-  notes           text
+  contract_id     int         [ref: > contracts.contract_id, not null, note: 'العقد']
+  payment_date    date        [not null, note: 'تاريخ الدفع']
+  amount_due      decimal(10,2) [not null, note: 'المبلغ المستحق']
+  status          payment_schedule_status [default: 'pending', note: 'الحالة']
+  transaction_id  int         [ref: > financial_transactions.transaction_id, note: 'المعاملة المالية']
+  reminder_sent   boolean     [default: false, note: 'تم إرسال التذكير']
+  notes           text [note: 'ملاحظات']
   created_at      datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at      datetime    [default: `CURRENT_TIMESTAMP`]
   
