@@ -168,7 +168,7 @@ Table locations {
   location_id     int  [pk, increment]
   location_name   varchar(100) [unique, not null, note: 'اسم الموقع']
   address         varchar(255) [note: 'عنوان الموقع']
-  city_id          [ref: > cities.city_id, not null]
+  city_id          int [ref: > cities.city_id, not null]
   region          varchar(50) [note: 'المنطقة']
   latitude        decimal(10,8) [note: 'خط العرض']
   longitude       decimal(11,8) [note: 'خط الطول']
@@ -412,28 +412,28 @@ Table rental_rates {
   }
 }
 
-Table oil_changes {
-  oil_change_id      int         [pk, increment]
-  car_id            int         [ref: > cars.car_id, note: 'السيارة']
-  current_odometer  int         [not null, note: 'عداد الكيلو متر الحالي']
-  oil_expiry_odometer int      [not null, note: 'ينتهي الزيت عند كم']
-  change_date       date        [not null, note: 'تاريخ تغيير الزيت']
-  amount            decimal(10,2) [default: 0.00, note: 'تكلفة تغيير الزيت']
-  invoice_number    varchar(50)  [unique, note: 'رقم الفاتورة']
-  supplier_name     varchar(100) [note: 'اسم المورد (اختياري)']
-  notes             text         [note: 'ملاحظات']
-  payment_type      payment_type [note: 'نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)']
-  car_id            int         [ref: > cars.car_id] // السيارة
-  current_odometer  int         [not null] // عداد الكيلو متر الحالي
-  oil_expiry_odometer int      [not null] // ينتهي الزيت عند كم
-  change_date       date        [not null] // تاريخ تغيير الزيت
-  amount            decimal(10,2) [default: 0.00] // تكلفة تغيير الزيت
-  invoice_number    varchar(50)  // رقم الفاتورة
-  supplier_name     varchar(100) // اسم المورد (اختياري)
-  notes             text         // ملاحظات
-  payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
-  created_at        datetime     [default: `CURRENT_TIMESTAMP`]
-}
+// Table oil_changes {
+//   oil_change_id      int         [pk, increment]
+//   car_id            int         [ref: > cars.car_id, note: 'السيارة']
+//   current_odometer  int         [not null, note: 'عداد الكيلو متر الحالي']
+//   oil_expiry_odometer int      [not null, note: 'ينتهي الزيت عند كم']
+//   change_date       date        [not null, note: 'تاريخ تغيير الزيت']
+//   amount            decimal(10,2) [default: 0.00, note: 'تكلفة تغيير الزيت']
+//   invoice_number    varchar(50)  [unique, note: 'رقم الفاتورة']
+//   supplier_name     varchar(100) [note: 'اسم المورد (اختياري)']
+//   notes             text         [note: 'ملاحظات']
+//   payment_type      payment_type [note: 'نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)']
+//   car_id            int         [ref: > cars.car_id] // السيارة
+//   current_odometer  int         [not null] // عداد الكيلو متر الحالي
+//   oil_expiry_odometer int      [not null] // ينتهي الزيت عند كم
+//   change_date       date        [not null] // تاريخ تغيير الزيت
+//   amount            decimal(10,2) [default: 0.00] // تكلفة تغيير الزيت
+//   invoice_number    varchar(50)  // رقم الفاتورة
+//   supplier_name     varchar(100) // اسم المورد (اختياري)
+//   notes             text         // ملاحظات
+//   payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
+//   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
+// }
 
 Table movement_types {
   movement_type_id   int         [pk, increment]
@@ -535,7 +535,9 @@ Table guarantors {
   updated_at        datetime     [default: `CURRENT_TIMESTAMP`]
 }
 
-///////////////////////////////////////////////////
+//////////////////////################################################/////////////////////////////
+
+//######___________________________#####
 
 // جدول المدن ووتحديد المنطقة
 Table cities {
@@ -543,11 +545,33 @@ Table cities {
   city_name_ar    varchar(50)   [unique, not null, note: 'الاسم عربي']
   city_name_en    varchar(50)   [unique, not null, note: 'الاسم عربي']
   code            int         [pk, increment]
-  branch_id       (ref: > branches.branch_id, 'الفرع'  )
+  branch_id       int     [ref: > branches.branch_id,  note: 'الفرع'  ]
   
   
   indexes {
     (city_id)
+  }
+}
+
+Table financial_transactions {
+  transaction_id         int         [pk, increment]
+  location_id           int         [ref: > locations.location_id, not null, note: 'الموقع']
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+ 
+  voucher_number         varchar(50) [unique, not null, note: 'رقم القسيمة']
+  transaction_type       transaction_type [not null, note: 'نوع المعاملة']
+  amount                 decimal(10,2) [not null, note: 'المبلغ']
+  transaction_datetime   datetime    [not null, note: 'تاريخ ووقت المعاملة']
+  status                 transaction_status [default: 'completed', note: 'الحالة']
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (voucher_number)
+    (transaction_datetime)
+    (branch_id)
+    (status)
   }
 }
 
@@ -558,14 +582,25 @@ Table cashbox {
   description text
   amount decimal
   transaction_type       varchar [ref: > financial_transactions.transaction_type ]
-  user_id                int [ref: > employees.id]
+  user_id                int [ref: > employees.employee_id, note: 'الموظف']
   payment_method         varchar
   reference_number       varchar
   created_at             datetime
 }
-// ايصالات الشبكة
 
-
+// employees
+Table employees {
+  employee_id             int         [pk, increment]
+  employee_code           varchar(20) [unique, not null, note: 'كود الموظف']
+  employee_name           varchar(100) [unique, not null, note: 'اسم الموظف']
+  job_title               varchar(100) [note: 'الوظيفة']
+  branch_id               int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  created_at              datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_at              datetime    [default: `CURRENT_TIMESTAMP`]
+  indexes {
+    (employee_id)
+  }
+}
 
 
 Table contracts {
@@ -603,29 +638,214 @@ Table contracts {
   updated_at              datetime [default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    // plate_number [unique] // رقم اللوحة يجب أن يكون فريد
+    plate_number [unique] // رقم اللوحة يجب أن يكون فريد
+  
+  }
+
+}
+
+
+
+// ===== تعريف Enums للعمليات المالية =====
+enum cashbox_operation_type {
+  opening_balance // الرصيد الافتتاحي
+  shift_handover // تسليم وردية
+  collector_supply // توريد لمحصل
+  branch_supply // توريد لفرع
+  bank_deposit // توريد لبنك
+  refund_operation // عملية استرداد
+  branch_adjustment // تسوية صندوق فرع
+}
+
+enum voucher_related_to {
+  general // عام
+  car // سيارة
+  branch // فرع
+  client // عميل
+  employee // موظف
+}
+
+enum payment_instrument {
+  cash // نقدا
+  check // شيك
+  bank_transfer // تحويل بنكي
+  card // بطاقة
+}
+
+// ===== جداول العمليات المالية =====
+
+// جدول عمليات الصندوق (الرصيد الافتتاحي، تسليم وردية، توريد، إلخ)
+Table cashbox_operations {
+  operation_id           int         [pk, increment]
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  operation_type         cashbox_operation_type [not null, note: 'نوع العملية']
+  amount                 decimal(10,2) [not null, note: 'المبلغ']
+  operation_date         datetime    [not null, note: 'تاريخ العملية']
+  
+  // لعمليات تسليم الوردية
+  from_user_id           int         [ref: > users.user_id, note: 'من المستخدم']
+  to_user_id             int         [ref: > users.user_id, note: 'إلى المستخدم']
+  network_receipts_amount decimal(10,2) [note: 'مبلغ إيصالات الشبكة']
+  
+  // للتوريد للبنك
+  bank_account_id        int         [ref: > accounts.account_id, note: 'الحساب البنكي']
+  deposit_reference      varchar(50) [note: 'رقم الإيداع/التحويل']
+  
+  // حقول مشتركة
+  notes                  text        [note: 'ملاحظات']
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (branch_id, operation_date)
+    (operation_type)
+    (from_user_id, to_user_id)
   }
 }
 
-Table financial_transactions {
-  transaction_id         int         [pk, increment]
-  voucher_number         varchar(50) [unique, not null, note: 'رقم القسيمة']
-  transaction_type       transaction_type [not null, note: 'نوع المعاملة']
-  amount                 decimal(10,2) [not null, note: 'المبلغ']
-  transaction_datetime   datetime    [not null, note: 'تاريخ ووقت المعاملة']
-  status                 transaction_status [default: 'completed', note: 'الحالة']
+// جدول سندات المصروفات والإيرادات
+Table financial_vouchers {
+  voucher_id             int         [pk, increment]
+  voucher_number         varchar(50) [unique, not null, note: 'رقم السند']
   branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  transaction_datetime   datetime    [not null, note: 'تاريخ ووقت المعاملة']
+  transaction_type       transaction_type [not null, note: 'نوع المعاملة (قبض/صرف)']
+  
+  // الجهة المرتبطة
+  related_to             voucher_related_to [not null, note: 'متعلق بـ']
+  car_id                 int         [ref: > cars.car_id, note: 'السيارة المرتبطة']
+  client_id              int         [ref: > clients.client_id, note: 'العميل المرتبط']
+  employee_id            int         [ref: > users.user_id, note: 'الموظف المرتبط']
+  
+  // تفاصيل مالية
+  amount                 decimal(10,2) [not null, note: 'المبلغ']
+  description            text        [note: 'البيان']
+  invoice_number         varchar(50) [note: 'رقم الفاتورة']
+  
+  // معلومات الضريبة
+  tax_amount             decimal(10,2) [default: 0.00, note: 'مبلغ الضريبة']
+  supplier_id            int         [ref: > suppliers.supplier_id, note: 'المورد']
+  tax_number             varchar(50) [note: 'الرقم الضريبي']
+  
+  // طريقة الدفع
+  payment_method_id      int         [ref: > payment_methods.method_id, not null, note: 'طريقة الدفع']
+  payment_instrument     payment_instrument [not null, note: 'وسيلة الدفع']
+  check_number           varchar(50) [note: 'رقم الشيك']
+  bank_name              varchar(100) [note: 'اسم البنك']
+  transaction_reference  varchar(50) [note: 'رقم العملية']
+  
+  // معلومات الحساب
+  from_account_id        int         [ref: > accounts.account_id, not null, note: 'من حساب']
+  
+  // حقول التدقيق
   created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_by             int         [ref: > users.user_id, note: 'تم التعديل بواسطة']
+  updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  device_info            varchar(255) [note: 'معلومات الجهاز']
+  
+  indexes {
+    (voucher_number)
+    (branch_id, transaction_datetime)
+    (transaction_type)
+    (related_to)
+    (client_id)
+    (car_id)
+    (employee_id)
+  }
+}
+
+// جدول تسوية صندوق الفرع
+Table branch_cashbox_adjustments {
+  adjustment_id          int         [pk, increment]
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  current_balance        decimal(10,2) [not null, note: 'الرصيد الحالي']
+  adjustment_amount      decimal(10,2) [not null, note: 'مبلغ التسوية']
+  new_balance            decimal(10,2) [not null, note: 'الرصيد الجديد']
+  adjustment_reason      text        [not null, note: 'سبب التسوية']
+  adjustment_date        datetime    [not null, note: 'تاريخ التسوية']
+  approved_by            int         [ref: > users.user_id, note: 'تمت الموافقة بواسطة']
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (branch_id, adjustment_date)
+  }
+}
+
+// جدول الموردين
+Table suppliers {
+  supplier_id            int         [pk, increment]
+  supplier_code          varchar(20) [unique, note: 'كود المورد']
+  supplier_name_ar       varchar(100) [unique, not null, note: 'اسم المورد بالعربية']
+  supplier_name_en       varchar(100) [unique, note: 'اسم المورد بالإنجليزية']
+  tax_number             varchar(50) [unique, note: 'الرقم الضريبي']
+  contact_person         varchar(100) [note: 'الشخص المسؤول']
+  phone_number           varchar(20) [note: 'رقم الهاتف']
+  email                  varchar(100) [note: 'البريد الإلكتروني']
+  address                text        [note: 'العنوان']
+  is_active              boolean     [default: true, note: 'نشط']
   created_at             datetime    [default: `CURRENT_TIMESTAMP`]
   updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
   
   indexes {
-    (voucher_number)
-    (transaction_datetime)
-    (branch_id)
-    (status)
+    (supplier_code)
+    (tax_number)
+    (is_active)
   }
 }
+
+// جدول دفتر اليومية
+Table journal_entries {
+  entry_id               int         [pk, increment]
+  voucher_number         varchar(50) [unique, not null, note: 'رقم السند']
+  branch_sequence        int         [not null, note: 'تسلسل الفرع']
+  branch_id              int         [ref: > branches.branch_id, not null, note: 'الفرع']
+  branch_name_snapshot   varchar(100) [not null, note: 'اسم الفرع (لحظة التسجيل)']
+  entry_datetime         datetime    [not null, note: 'تاريخ ووقت القيد']
+  
+  // تفاصيل المعاملة
+  transaction_type       transaction_type [not null, note: 'نوع الحركة']
+  operation_category     varchar(50) [note: 'نوع العملية']
+  operation_type         operation_type [note: 'العملية']
+  contract_id            int         [ref: > contracts.contract_id, note: 'العقد المرتبط']
+  
+  // المبالغ
+  receipt_amount         decimal(10,2) [default: 0.00, note: 'مبلغ القبض']
+  payment_amount         decimal(10,2) [default: 0.00, note: 'مبلغ الصرف']
+  
+  // تفاصيل إضافية
+  description            text        [note: 'البيان']
+  payment_method_id      int         [ref: > payment_methods.method_id, note: 'طريقة الدفع']
+  from_account_id        int         [ref: > accounts.account_id, note: 'من حساب']
+  
+  // معلومات الاعتماد
+  approved_by            int         [ref: > users.user_id, note: 'معتمد بواسطة']
+  approval_number        varchar(50) [note: 'رقم الموافقة']
+  
+  // معلومات المورد
+  supplier_id            int         [ref: > suppliers.supplier_id, note: 'المورد']
+  tax_number             varchar(50) [note: 'الرقم الضريبي']
+  
+  // حقول التدقيق
+  created_by             int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  updated_by             int         [ref: > users.user_id, note: 'تم التعديل بواسطة']
+  updated_at             datetime    [default: `CURRENT_TIMESTAMP`]
+  device_info            varchar(255) [note: 'معلومات الجهاز']
+  
+  indexes {
+    (voucher_number)
+    (branch_id, branch_sequence) [unique]
+    (entry_datetime)
+    (transaction_type)
+    (contract_id)
+    (supplier_id)
+  }
+}
+
+
+
 
 
 
@@ -689,6 +909,22 @@ Table transaction_taxes {
   }
 }
 
+
+
+Table transaction_categories {
+  category_id                int         [pk, increment]
+  category_name              varchar(50) [unique, not null, note: 'اسم الفئة']
+  parent_id                  int         [ref: > transaction_categories.category_id, note: 'الفئة الأب']
+  affects_account_type       affects_account_type [note: 'نوع الحساب المتأثر']
+  is_active                  boolean     [default: true]
+  
+  indexes {
+    (parent_id)
+    (is_active)
+  }
+}
+
+
 // جدول أرشفة العقود المنتهية
 Table archived_contracts {
   archive_id              int         [pk, increment]
@@ -738,18 +974,15 @@ Table system_settings {
   // archive_inactive_clients_after_days: "1095"
 }
 
-Table transaction_categories {
-  category_id        int         [pk, increment]
-  category_name      varchar(50) [unique, not null, note: 'اسم الفئة']
-  parent_id          int         [ref: > transaction_categories.category_id, note: 'الفئة الأب']
-  affects_account_type enum('cash', 'client', 'expense', 'revenue') [note: 'نوع الحساب المتأثر']
-  is_active          boolean     [default: true]
-  
-  indexes {
-    (parent_id)
-    (is_active)
-  }
+
+enum affects_account_type {
+  cash
+  client
+  expense
+  revenue
 }
+
+
 
 
 Table accounts {
@@ -892,4 +1125,96 @@ Table contract_payments_schedule {
     (contract_id, payment_date)
     (status, payment_date)
   }
+}
+
+
+
+
+
+
+// Financial Operations TableGroup
+TableGroup financial_operations {
+  cashbox_operations
+  financial_vouchers
+  branch_cashbox_adjustments
+  suppliers
+  journal_entries
+  shift_handovers
+  administrative_expenses
+}
+
+
+
+TableGroup user_management {
+  permission_groups
+  permissions
+  permission_group_permissions
+  users
+  employees
+}
+
+TableGroup car_fleet {
+  car_brands
+  car_models
+  car_colors
+  car_categories
+  cars
+  rental_rates
+  movement_types
+  car_history
+}
+
+TableGroup client_management {
+  identity_types
+  nationalities
+  professions
+  client_categories
+  clients
+  guarantors
+}
+
+TableGroup branch_and_locations {
+  locations
+  months
+  branch_targets
+  branches
+  cities
+}
+
+TableGroup contracts {
+  contracts
+  contract_transactions
+  contract_payments_schedule
+  archived_contracts
+}
+
+TableGroup financial_operations {
+  financial_transactions
+  cashbox
+  cashbox_operations
+  financial_vouchers
+  branch_cashbox_adjustments
+  suppliers
+  journal_entries
+  expense_categories
+  expense_transactions
+  transaction_taxes
+  transaction_categories
+  transaction_category_mapping
+  archived_transactions
+  accounts
+  account_categories
+  account_movements
+  payment_methods
+}
+
+TableGroup handovers_and_expenses {
+  shift_handovers
+  supply_handovers
+  administrative_expenses
+}
+
+TableGroup settings_and_system {
+  system_settings
+  tax_settings
 }
