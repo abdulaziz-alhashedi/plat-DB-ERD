@@ -426,7 +426,7 @@ Table rental_rates {
 //   invoice_number    varchar(50)  // رقم الفاتورة
 //   supplier_name     varchar(100) // اسم المورد (اختياري)
 //   notes             text         // ملاحظات
-//   payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...)
+//   payment_type      varchar(30)  // نوع الدفع (نقدي، غير نقدي، فاتورة، آجل ...) 
 //   created_at        datetime     [default: `CURRENT_TIMESTAMP`]
 // }
 
@@ -768,6 +768,7 @@ Table financial_vouchers {
   tax_number             varchar(50) [note: 'الرقم الضريبي']
   
   // طريقة الدفع
+  payment_methpayment_meth payment_meth [not null, note: 'نوع الدفع']
   payment_method_id      int         [ref: > payment_methods.method_id, not null, note: 'طريقة الدفع']
   check_number           varchar(50) [note: 'رقم الشيك']
   bank_id                int         [ref: > banks.bank_id, note: 'البنك']
@@ -794,6 +795,27 @@ Table financial_vouchers {
   }
 }
 
+Enum payment_meth {
+  cash
+  check
+  bank_transfer
+  card
+}
+
+// مصروفات صيانة سييارات
+Table car_maintenance_expenses {
+  expense_id          int         [pk, increment]
+  car_id              int         [ref: > cars.car_id, not null, note: 'السيارة']
+  expense_date        datetime    [not null, note: 'تاريخ المصروف']
+  expense_amount      decimal(10,2) [not null, note: 'مبلغ المصروف']
+  description         text        [note: 'البيان']
+  created_by          int         [ref: > users.user_id, not null, note: 'تم الإنشاء بواسطة']
+  created_at          datetime    [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (car_id, expense_date)
+  }
+}
 
 // انواع السندات
 Table voucher_types {
